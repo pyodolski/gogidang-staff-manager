@@ -15,6 +15,7 @@ export default function AuthButton() {
   useEffect(() => {
     console.log("Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
     console.log("Current origin:", window.location.origin);
+    console.log("Supabase client URL:", supabase.supabaseUrl);
   }, []);
 
   useEffect(() => {
@@ -65,15 +66,14 @@ export default function AuthButton() {
     setLoading(true);
 
     try {
-      console.log(
-        "Starting OAuth with redirect:",
-        `${window.location.origin}/auth/callback`
-      );
+      const redirectUrl = `${window.location.origin}/auth/callback`;
+      console.log("Starting OAuth with redirect:", redirectUrl);
+      console.log("Supabase URL being used:", supabase.supabaseUrl);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
         },
       });
 
