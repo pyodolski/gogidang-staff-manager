@@ -110,7 +110,7 @@ export default function SuperEmployeeManagement() {
           <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-100 rounded-lg"></div>
+              <div key={i} className="h-20 bg-gray-100 rounded-lg"></div>
             ))}
           </div>
         </div>
@@ -128,43 +128,20 @@ export default function SuperEmployeeManagement() {
         </p>
       </div>
 
-      {/* 직원 목록 */}
+      {/* 직원 목록 - 모바일 최적화된 카드 형태 */}
       <div className="p-6">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-2 font-medium text-gray-600">
-                  이름
-                </th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">
-                  이메일
-                </th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">
-                  권한
-                </th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">
-                  시급
-                </th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">
-                  가입일
-                </th>
-                <th className="text-center py-3 px-2 font-medium text-gray-600">
-                  관리
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {employees.map((employee) => (
-                <tr
-                  key={employee.id}
-                  className="border-b border-gray-100 hover:bg-gray-50"
-                >
-                  <td className="py-3 px-2 font-medium text-gray-800">
-                    {employee.full_name}
-                  </td>
-                  <td className="py-3 px-2 text-gray-600">{employee.email}</td>
-                  <td className="py-3 px-2">
+        <div className="space-y-4">
+          {employees.map((employee) => (
+            <div
+              key={employee.id}
+              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h4 className="font-medium text-gray-800 truncate">
+                      {employee.full_name}
+                    </h4>
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(
                         employee.role
@@ -172,47 +149,45 @@ export default function SuperEmployeeManagement() {
                     >
                       {getRoleDisplayName(employee.role)}
                     </span>
-                  </td>
-                  <td className="py-3 px-2 text-gray-600">
-                    {employee.hourly_wage.toLocaleString()}원
-                  </td>
-                  <td className="py-3 px-2 text-gray-600">
-                    {new Date(employee.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="py-3 px-2">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => {
-                          setSelectedEmployee(employee);
-                          setShowRoleModal(true);
-                        }}
-                        className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                      >
-                        권한변경
-                      </button>
-                      {employee.role !== "super" && (
-                        <button
-                          onClick={() => {
-                            setSelectedEmployee(employee);
-                            setShowDeleteModal(true);
-                          }}
-                          className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
-                        >
-                          삭제
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                  <div className="text-sm text-gray-600 mb-1 truncate">
+                    {employee.email}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    가입일: {new Date(employee.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 ml-4">
+                  <button
+                    onClick={() => {
+                      setSelectedEmployee(employee);
+                      setShowRoleModal(true);
+                    }}
+                    className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 whitespace-nowrap"
+                  >
+                    권한변경
+                  </button>
+                  {employee.role !== "super" && (
+                    <button
+                      onClick={() => {
+                        setSelectedEmployee(employee);
+                        setShowDeleteModal(true);
+                      }}
+                      className="px-3 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700 whitespace-nowrap"
+                    >
+                      삭제
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* 권한 변경 모달 */}
       {showRoleModal && selectedEmployee && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold mb-4">권한 변경</h3>
             <p className="text-gray-600 mb-4">
@@ -263,7 +238,7 @@ export default function SuperEmployeeManagement() {
 
       {/* 삭제 확인 모달 */}
       {showDeleteModal && selectedEmployee && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-red-600 mb-4">
               직원 삭제

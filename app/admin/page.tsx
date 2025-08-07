@@ -33,7 +33,16 @@ export default function AdminPage() {
         .eq("id", user.id)
         .single();
 
-      if (!profile || profile.role !== "admin") {
+      if (!profile) {
+        router.replace("/dashboard");
+        return;
+      }
+
+      // Super는 super 페이지로, employee는 dashboard로
+      if (profile.role === "super") {
+        router.replace("/super");
+        return;
+      } else if (profile.role !== "admin") {
         router.replace("/dashboard");
         return;
       }
