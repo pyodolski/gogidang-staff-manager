@@ -1,0 +1,366 @@
+import { useEffect, useState } from "react";
+import { createClient } from "../lib/supabase/client";
+import dayjs from "dayjs";
+
+export default function PendingWorkTable() {
+  const [workLogs, setWorkLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<
+    "all" | "pending" | "approved" | "rejected"
+  >("all");
+
+  const fetchWorkLogs = async () => {
+    setLoading(true);
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    let query = supabase
+      .from("work_logs")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (filter !== "all") {
+      query = query.eq("status", filter);
+    }
+
+    const { data } = await query;
+    setWorkLogs(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchWorkLogs();
+  }, [filter]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "text-yellow-600";
+      case "approved":
+        return "text-green-600";
+      case "rejected":
+        return "text-red-600";
+      default:
+        return "text-gray-600";
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "대기중";
+      case "approved":
+        return "승인됨";
+      case "rejected":
+        return "거절됨";
+      default:
+        return status;
+    }
+  };
+
+  const calculateWorkHours = (clockIn: string, clockOut: string) => {
+    // 시간 문자열을 더 안전하게 파싱
+    const clockInStr = clockIn.includes(":") ? clockIn : clockIn + ":00";
+    const clockOutStr = clockOut.includes(":") ? clockOut : clockOut + ":00";
+
+    // 오늘 날짜를 기준으로 시간 생성
+    const baseDate = "2024-01-01";
+    const start = dayjs(`${baseDate} ${clockInStr}`);
+    const end = dayjs(`${baseDate} ${clockOutStr}`);
+
+    if (start.isValid() && end.isValid()) {
+      const minutes = end.diff(start, "minute");
+      return minutes > 0 ? (minutes / 60).toFixed(2) : "0.00";
+    }
+
+    return "0.00";
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-12 bg-gray-100 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const pendingCount = workLogs.filter(
+    (log) => log.status === "pending"
+  ).length;
+  const approvedCount = workLogs.filter(
+    (log) => log.status === "approved"
+  ).length;
+  const rejectedCount = workLogs.filter(
+    (log) => log.status === "rejected"
+  ).length;
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      {/* 헤더 */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-3">
+          <div className="bg-slate-100 rounded-full p-2">
+            <svg
+              className="w-6 h-6 text-slate-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-800">근무 등록 내역</h2>
+        </div>
+        <button
+          onClick={fetchWorkLogs}
+          className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          새로고침
+        </button>
+      </div>
+
+      {/* 상태별 요약 카드 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div className="bg-gray-50 rounded-lg p-3">
+          <div className="text-xs text-gray-600 mb-1">전체</div>
+          <div className="text-lg font-semibold text-gray-800">
+            {workLogs.length}건
+          </div>
+        </div>
+        <div className="bg-yellow-50 rounded-lg p-3">
+          <div className="text-xs text-yellow-700 mb-1">대기중</div>
+          <div className="text-lg font-semibold text-yellow-800">
+            {pendingCount}건
+          </div>
+        </div>
+        <div className="bg-green-50 rounded-lg p-3">
+          <div className="text-xs text-green-700 mb-1">승인됨</div>
+          <div className="text-lg font-semibold text-green-800">
+            {approvedCount}건
+          </div>
+        </div>
+        <div className="bg-red-50 rounded-lg p-3">
+          <div className="text-xs text-red-700 mb-1">거절됨</div>
+          <div className="text-lg font-semibold text-red-800">
+            {rejectedCount}건
+          </div>
+        </div>
+      </div>
+
+      {/* 필터 버튼들 */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button
+          onClick={() => setFilter("all")}
+          className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${
+            filter === "all"
+              ? "bg-blue-600 text-white shadow-md"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          전체
+        </button>
+        <button
+          onClick={() => setFilter("pending")}
+          className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${
+            filter === "pending"
+              ? "bg-yellow-500 text-white shadow-md"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          대기중
+        </button>
+        <button
+          onClick={() => setFilter("approved")}
+          className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${
+            filter === "approved"
+              ? "bg-green-500 text-white shadow-md"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          승인됨
+        </button>
+        <button
+          onClick={() => setFilter("rejected")}
+          className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${
+            filter === "rejected"
+              ? "bg-red-500 text-white shadow-md"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          거절됨
+        </button>
+      </div>
+
+      {workLogs.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-8 h-8 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+          </div>
+          <p className="text-gray-500 font-medium">
+            {filter === "all"
+              ? "등록된 근무 내역이 없습니다."
+              : `${getStatusText(filter)} 근무 내역이 없습니다.`}
+          </p>
+          <p className="text-gray-400 text-sm mt-1">
+            근무 등록 버튼을 눌러 새로운 근무를 등록해보세요.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {workLogs.map((log) => {
+            const statusConfig = {
+              pending: {
+                bg: "bg-yellow-50",
+                border: "border-yellow-200",
+                text: "text-yellow-800",
+                badge: "bg-yellow-100",
+              },
+              approved: {
+                bg: "bg-green-50",
+                border: "border-green-200",
+                text: "text-green-800",
+                badge: "bg-green-100",
+              },
+              rejected: {
+                bg: "bg-red-50",
+                border: "border-red-200",
+                text: "text-red-800",
+                badge: "bg-red-100",
+              },
+            }[log.status] || {
+              bg: "bg-gray-50",
+              border: "border-gray-200",
+              text: "text-gray-800",
+              badge: "bg-gray-100",
+            };
+
+            return (
+              <div
+                key={log.id}
+                className={`${statusConfig.bg} ${statusConfig.border} border rounded-lg p-4 hover:shadow-md transition-shadow`}
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="font-semibold text-gray-800">
+                      {dayjs(log.date).format("YYYY년 MM월 DD일 (ddd)")}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {log.clock_in} ~ {log.clock_out} (
+                      {calculateWorkHours(log.clock_in, log.clock_out)}시간)
+                    </p>
+                  </div>
+                  <span
+                    className={`${statusConfig.badge} ${statusConfig.text} px-3 py-1 rounded-full text-xs font-medium`}
+                  >
+                    {getStatusText(log.status)}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center text-sm text-gray-600">
+                  <span>
+                    등록일: {dayjs(log.created_at).format("MM-DD HH:mm")}
+                  </span>
+                  {log.status === "pending" && (
+                    <div className="flex items-center gap-1 text-yellow-600">
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      승인 대기중
+                    </div>
+                  )}
+                  {log.status === "approved" && (
+                    <div className="flex items-center gap-1 text-green-600">
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      승인 완료
+                    </div>
+                  )}
+                  {log.status === "rejected" && (
+                    <div className="flex items-center gap-1 text-red-600">
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                      승인 거절
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
