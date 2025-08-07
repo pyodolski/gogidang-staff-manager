@@ -11,13 +11,6 @@ export default function AuthButton() {
   const router = useRouter();
   const supabase = createClient();
 
-  // 디버깅용 로그
-  useEffect(() => {
-    console.log("Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.log("Current origin:", window.location.origin);
-    console.log("Supabase client URL:", supabase.supabaseUrl);
-  }, []);
-
   useEffect(() => {
     const getUserAndProfile = async () => {
       const {
@@ -62,13 +55,10 @@ export default function AuthButton() {
   }, [supabase]);
 
   const handleLogin = async () => {
-    console.log("Login button clicked");
     setLoading(true);
 
     try {
       const redirectUrl = `${window.location.origin}/auth/callback`;
-      console.log("Starting OAuth with redirect:", redirectUrl);
-      console.log("Supabase URL being used:", supabase.supabaseUrl);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -76,8 +66,6 @@ export default function AuthButton() {
           redirectTo: redirectUrl,
         },
       });
-
-      console.log("OAuth response:", { data, error });
 
       if (error) {
         console.error("Login error:", error);
