@@ -61,31 +61,32 @@ export default function AuthButton() {
   }, [supabase]);
 
   const handleLogin = async () => {
+    console.log("Login button clicked");
     setLoading(true);
 
     try {
+      console.log(
+        "Starting OAuth with redirect:",
+        `${window.location.origin}/auth/callback`
+      );
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo:
-            "https://gogidang-staff-manager-ptex.vercel.app/auth/callback",
-          queryParams: {
-            access_type: "offline",
-            prompt: "consent",
-          },
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
+      console.log("OAuth response:", { data, error });
+
       if (error) {
         console.error("Login error:", error);
-        alert("로그인 중 오류가 발생했습니다: " + error.message);
+        alert("로그인 오류: " + error.message);
         setLoading(false);
       }
-
-      // OAuth 리디렉션이 성공하면 이 코드는 실행되지 않습니다
     } catch (err) {
       console.error("Unexpected error:", err);
-      alert("예상치 못한 오류가 발생했습니다.");
+      alert("로그인 중 오류가 발생했습니다: " + err);
       setLoading(false);
     }
   };
