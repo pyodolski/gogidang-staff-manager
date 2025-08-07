@@ -108,12 +108,23 @@ export default function AuthButton() {
     <div className="flex items-center gap-4">
       <div className="text-sm text-gray-600">
         <div>{profile?.full_name || user.email}</div>
+        {profile?.role === "super" && (
+          <div className="text-xs text-red-600">슈퍼관리자</div>
+        )}
         {profile?.role === "admin" && (
           <div className="text-xs text-blue-600">관리자</div>
         )}
       </div>
 
       <div className="flex gap-2">
+        {profile?.role === "super" && (
+          <Link
+            href="/super"
+            className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            슈퍼관리자
+          </Link>
+        )}
         {profile?.role === "admin" && (
           <Link
             href="/admin"
