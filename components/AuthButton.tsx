@@ -1,8 +1,8 @@
-'use client';
-import { createClient } from '../lib/supabase/client';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
+"use client";
+import { createClient } from "../lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function AuthButton() {
   const [user, setUser] = useState<any>(null);
@@ -11,39 +11,49 @@ export default function AuthButton() {
   const router = useRouter();
   const supabase = createClient();
 
+  // 디버깅용 로그
+  useEffect(() => {
+    console.log("Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log("Current origin:", window.location.origin);
+  }, []);
+
   useEffect(() => {
     const getUserAndProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setUser(user);
-      
+
       if (user) {
         const { data: profileData } = await supabase
-          .from('profiles')
-          .select('full_name, role')
-          .eq('id', user.id)
+          .from("profiles")
+          .select("full_name, role")
+          .eq("id", user.id)
           .single();
         setProfile(profileData);
       }
-      
+
       setLoading(false);
     };
-    
+
     getUserAndProfile();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         const { data: profileData } = await supabase
-          .from('profiles')
-          .select('full_name, role')
-          .eq('id', session.user.id)
+          .from("profiles")
+          .select("full_name, role")
+          .eq("id", session.user.id)
           .single();
         setProfile(profileData);
       } else {
         setProfile(null);
       }
-      
+
       setLoading(false);
     });
 
@@ -52,15 +62,30 @@ export default function AuthButton() {
 
   const handleLogin = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({ 
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
+
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo:
+            "https://gogidang-staff-manager-ptex.vercel.app/auth/callback",
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      });
+
+      if (error) {
+        console.error("Login error:", error);
+        alert("로그인 중 오류가 발생했습니다: " + error.message);
+        setLoading(false);
       }
-    });
-    
-    if (error) {
-      console.error('Login error:', error);
+
+      // OAuth 리디렉션이 성공하면 이 코드는 실행되지 않습니다
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      alert("예상치 못한 오류가 발생했습니다.");
       setLoading(false);
     }
   };
@@ -68,7 +93,7 @@ export default function AuthButton() {
   const handleLogout = async () => {
     setLoading(true);
     await supabase.auth.signOut();
-    router.push('/login');
+    router.push("/login");
   };
 
   if (loading) {
@@ -94,13 +119,13 @@ export default function AuthButton() {
     <div className="flex items-center gap-4">
       <div className="text-sm text-gray-600">
         <div>{profile?.full_name || user.email}</div>
-        {profile?.role === 'admin' && (
+        {profile?.role === "admin" && (
           <div className="text-xs text-blue-600">관리자</div>
         )}
       </div>
-      
+
       <div className="flex gap-2">
-        {profile?.role === 'admin' && (
+        {profile?.role === "admin" && (
           <Link
             href="/admin"
             className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
