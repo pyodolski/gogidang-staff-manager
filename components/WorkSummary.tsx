@@ -42,11 +42,7 @@ export default function WorkSummary({
       if (profile?.hourly_wage) hourly = profile.hourly_wage;
       // 총 근무시간(분 단위 합산)
       let totalMinutes = 0;
-      console.log("Logs data:", logs); // 디버깅용
-
       logs?.forEach((log: any) => {
-        console.log("Processing log:", log); // 디버깅용
-
         // 시간 문자열을 더 안전하게 파싱
         const clockInStr = log.clock_in.includes(":")
           ? log.clock_in
@@ -60,18 +56,13 @@ export default function WorkSummary({
         const start = dayjs(`${baseDate} ${clockInStr}`);
         const end = dayjs(`${baseDate} ${clockOutStr}`);
 
-        console.log("Start time:", start.format(), "End time:", end.format()); // 디버깅용
-
         if (start.isValid() && end.isValid()) {
           const minutes = end.diff(start, "minute");
-          console.log("Minutes for this log:", minutes); // 디버깅용
           totalMinutes += minutes;
         } else {
           console.error("Invalid time format:", log.clock_in, log.clock_out);
         }
       });
-
-      console.log("Total minutes:", totalMinutes); // 디버깅용
 
       const totalHours = totalMinutes > 0 ? totalMinutes / 60 : 0;
       const totalPay = totalHours > 0 ? Math.floor(hourly * totalHours) : 0;

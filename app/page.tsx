@@ -42,7 +42,7 @@ export default function Home() {
             }
           } else {
             // 프로필이 없으면 생성
-            console.log("Creating profile for user:", session.user.id);
+
             const { error: insertError } = await supabase
               .from("profiles")
               .insert({
@@ -56,8 +56,6 @@ export default function Home() {
 
             if (insertError) {
               console.error("Profile creation error:", insertError);
-            } else {
-              console.log("Profile created successfully");
             }
 
             // 프로필 생성 후 대시보드로

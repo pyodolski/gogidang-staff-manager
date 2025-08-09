@@ -15,10 +15,12 @@ type Employee = {
 
 type WorkLog = {
   id: number;
+  user_id: string;
   date: string;
   clock_in: string;
   clock_out: string;
   status: string;
+  created_at: string;
 };
 
 type Deduction = {
@@ -432,12 +434,13 @@ export default function EmployeeDetail({ employee, onBack }: Props) {
 
       {showWorkLogModal && selectedWorkLog && (
         <WorkLogModal
+          employee={employee}
           workLog={selectedWorkLog}
           onClose={() => {
             setShowWorkLogModal(false);
             setSelectedWorkLog(null);
           }}
-          onUpdate={handleWorkLogUpdate}
+          onSave={handleWorkLogUpdate}
         />
       )}
     </div>
