@@ -423,7 +423,11 @@ export default function EmployeeDetail({ employee, onBack }: Props) {
       )}
 
       {showDeductionModal && (
-        <DeductionModal employee={employee} onClose={handleDeductionUpdate} />
+        <DeductionModal
+          employee={employee}
+          onClose={() => setShowDeductionModal(false)}
+          onSave={handleDeductionUpdate}
+        />
       )}
 
       {showWorkLogModal && selectedWorkLog && (
