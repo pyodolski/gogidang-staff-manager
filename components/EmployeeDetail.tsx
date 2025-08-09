@@ -34,9 +34,10 @@ type Deduction = {
 type Props = {
   employee: Employee;
   onBack: () => void;
+  onUpdate?: () => void;
 };
 
-export default function EmployeeDetail({ employee, onBack }: Props) {
+export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
   const [workLogs, setWorkLogs] = useState<WorkLog[]>([]);
   const [deductions, setDeductions] = useState<Deduction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,11 +106,13 @@ export default function EmployeeDetail({ employee, onBack }: Props) {
     fetchData();
     setShowWorkLogModal(false);
     setSelectedWorkLog(null);
+    onUpdate?.(); // 부모 컴포넌트에 업데이트 알림
   };
 
   const handleDeductionUpdate = () => {
     fetchData();
     setShowDeductionModal(false);
+    onUpdate?.(); // 부모 컴포넌트에 업데이트 알림
   };
 
   // 급여 계산
