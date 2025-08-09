@@ -25,6 +25,7 @@ type WorkLog = {
 
 type Deduction = {
   id: number;
+  user_id: string;
   name: string;
   amount: number;
   type: "fixed" | "percentage";
