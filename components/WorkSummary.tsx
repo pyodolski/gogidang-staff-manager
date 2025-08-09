@@ -74,11 +74,11 @@ export default function WorkSummary({
       console.log("Total minutes:", totalMinutes); // 디버깅용
 
       const totalHours = totalMinutes > 0 ? totalMinutes / 60 : 0;
-      const totalPay = totalHours > 0 ? hourly * totalHours : 0;
+      const totalPay = totalHours > 0 ? Math.floor(hourly * totalHours) : 0;
 
-      // 기본 세금 계산
-      const incomeTax = totalPay > 0 ? totalPay * 0.03 : 0;
-      const localTax = totalPay > 0 ? totalPay * 0.003 : 0;
+      // 기본 세금 계산 (소수점 버림)
+      const incomeTax = totalPay > 0 ? Math.floor(totalPay * 0.03) : 0;
+      const localTax = totalPay > 0 ? Math.floor(totalPay * 0.003) : 0;
 
       // 추가 공제 항목들 조회 (기타에 포함)
       const { data: deductions } = await supabase
@@ -92,13 +92,15 @@ export default function WorkSummary({
         if (deduction.type === "fixed") {
           additionalDeductions += deduction.amount;
         } else {
-          additionalDeductions += (totalPay * deduction.amount) / 100;
+          additionalDeductions += Math.floor(
+            (totalPay * deduction.amount) / 100
+          );
         }
       });
 
-      const etc = additionalDeductions;
+      const etc = Math.floor(additionalDeductions);
       const realPay =
-        totalPay > 0 ? totalPay - (incomeTax + localTax + etc) : 0;
+        totalPay > 0 ? Math.floor(totalPay - (incomeTax + localTax + etc)) : 0;
       setSummary({
         month: monthStr,
         totalHours,

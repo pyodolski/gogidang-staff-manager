@@ -107,28 +107,30 @@ export default function PayrollSlip({
     );
   }
 
-  // 급여 계산
+  // 급여 계산 (소수점 버림)
   const totalHours = workLogs.reduce(
     (sum, log) => sum + calculateWorkHours(log.clock_in, log.clock_out),
     0
   );
-  const grossPay = totalHours * employee.hourly_wage;
+  const grossPay = Math.floor(totalHours * employee.hourly_wage);
 
-  // 기본 세금
-  const incomeTax = grossPay * 0.03;
-  const localTax = grossPay * 0.003;
+  // 기본 세금 (소수점 버림)
+  const incomeTax = Math.floor(grossPay * 0.03);
+  const localTax = Math.floor(grossPay * 0.003);
 
-  // 추가 공제
+  // 추가 공제 (소수점 버림)
   const additionalDeductions = deductions.reduce((sum, deduction) => {
     if (deduction.type === "fixed") {
       return sum + deduction.amount;
     } else {
-      return sum + (grossPay * deduction.amount) / 100;
+      return sum + Math.floor((grossPay * deduction.amount) / 100);
     }
   }, 0);
 
-  const totalDeductions = incomeTax + localTax + additionalDeductions;
-  const netPay = grossPay - totalDeductions;
+  const totalDeductions = Math.floor(
+    incomeTax + localTax + additionalDeductions
+  );
+  const netPay = Math.floor(grossPay - totalDeductions);
 
   const monthName = dayjs(selectedMonth + "-01").format("YYYY년 MM월");
 
@@ -212,7 +214,7 @@ export default function PayrollSlip({
                       log.clock_in,
                       log.clock_out
                     );
-                    const dailyPay = hours * employee.hourly_wage;
+                    const dailyPay = Math.floor(hours * employee.hourly_wage);
 
                     return (
                       <tr key={log.id}>
@@ -291,7 +293,7 @@ export default function PayrollSlip({
                   const amount =
                     deduction.type === "fixed"
                       ? deduction.amount
-                      : (grossPay * deduction.amount) / 100;
+                      : Math.floor((grossPay * deduction.amount) / 100);
 
                   return (
                     <div

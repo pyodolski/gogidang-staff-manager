@@ -77,9 +77,9 @@ export default function WorkCalendar({ selectedMonth }: Props) {
           if (profile?.hourly_wage) hourly = profile.hourly_wage;
         }
 
-        const totalPay = hours > 0 ? hourly * hours : 0;
-        const incomeTax = totalPay > 0 ? totalPay * 0.03 : 0;
-        const localTax = totalPay > 0 ? totalPay * 0.003 : 0;
+        const totalPay = hours > 0 ? Math.floor(hourly * hours) : 0;
+        const incomeTax = totalPay > 0 ? Math.floor(totalPay * 0.03) : 0;
+        const localTax = totalPay > 0 ? Math.floor(totalPay * 0.003) : 0;
 
         // 추가 공제 항목들 조회
         let additionalDeductions = 0;
@@ -92,17 +92,21 @@ export default function WorkCalendar({ selectedMonth }: Props) {
 
           deductions?.forEach((deduction: any) => {
             if (deduction.type === "fixed") {
-              // 일일 공제액 = 월 공제액 / 30일 (근사치)
-              additionalDeductions += deduction.amount / 30;
+              // 일일 공제액 = 월 공제액 / 30일 (근사치, 소수점 버림)
+              additionalDeductions += Math.floor(deduction.amount / 30);
             } else {
-              additionalDeductions += (totalPay * deduction.amount) / 100;
+              additionalDeductions += Math.floor(
+                (totalPay * deduction.amount) / 100
+              );
             }
           });
         }
 
         const realPay =
           totalPay > 0
-            ? totalPay - (incomeTax + localTax + additionalDeductions)
+            ? Math.floor(
+                totalPay - (incomeTax + localTax + additionalDeductions)
+              )
             : 0;
 
         setDetail({
