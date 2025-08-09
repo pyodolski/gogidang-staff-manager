@@ -46,6 +46,12 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
   const [showDeductionModal, setShowDeductionModal] = useState(false);
   const [showWorkLogModal, setShowWorkLogModal] = useState(false);
   const [selectedWorkLog, setSelectedWorkLog] = useState<WorkLog | null>(null);
+  const [showAddWorkLogModal, setShowAddWorkLogModal] = useState(false);
+  const [showAddBonusModal, setShowAddBonusModal] = useState(false);
+  const [showEditDeductionModal, setShowEditDeductionModal] = useState(false);
+  const [selectedDeduction, setSelectedDeduction] = useState<Deduction | null>(
+    null
+  );
 
   useEffect(() => {
     fetchData();
@@ -106,13 +112,64 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
     fetchData();
     setShowWorkLogModal(false);
     setSelectedWorkLog(null);
-    onUpdate?.(); // 부모 컴포넌트에 업데이트 알림
+    onUpdate?.();
   };
 
   const handleDeductionUpdate = () => {
     fetchData();
     setShowDeductionModal(false);
-    onUpdate?.(); // 부모 컴포넌트에 업데이트 알림
+    onUpdate?.();
+  };
+
+  const handleDeleteWorkLog = async (logId: number) => {
+    if (!confirm("이 근무 기록을 삭제하시겠습니까?")) return;
+
+    const supabase = createClient();
+    const { error } = await supabase.from("work_logs").delete().eq("id", logId);
+
+    if (error) {
+      alert("삭제 중 오류가 발생했습니다: " + error.message);
+    } else {
+      fetchData();
+      onUpdate?.();
+    }
+  };
+
+  const handleToggleDeduction = async (deduction: Deduction) => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("salary_deductions")
+      .update({ is_active: !deduction.is_active })
+      .eq("id", deduction.id);
+
+    if (error) {
+      alert("상태 변경 중 오류가 발생했습니다: " + error.message);
+    } else {
+      fetchData();
+      onUpdate?.();
+    }
+  };
+
+  const handleDeleteDeduction = async (deductionId: number) => {
+    if (!confirm("이 공제 항목을 삭제하시겠습니까?")) return;
+
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("salary_deductions")
+      .delete()
+      .eq("id", deductionId);
+
+    if (error) {
+      alert("삭제 중 오류가 발생했습니다: " + error.message);
+    } else {
+      fetchData();
+      onUpdate?.();
+    }
+  };
+
+  const handleEditDeduction = (deduction: Deduction) => {
+    setSelectedDeduction(deduction);
+    setShowEditDeductionModal(true);
   };
 
   // 급여 계산
@@ -260,10 +317,30 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
         {/* 근무 기록 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="p-4 border-b border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800">근무 기록</h3>
-            <p className="text-sm text-gray-600 mt-1">
-              총 {workLogs.length}건 (승인: {approvedLogs.length}건)
-            </p>
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  근무 기록
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  총 {workLogs.length}건 (승인: {approvedLogs.length}건)
+                </p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => setShowAddWorkLogModal(true)}
+                  className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 whitespace-nowrap"
+                >
+                  근무추가
+                </button>
+                <button
+                  onClick={() => setShowAddBonusModal(true)}
+                  className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 whitespace-nowrap"
+                >
+                  보너스
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="divide-y divide-gray-100">
@@ -292,11 +369,13 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                 return (
                   <div
                     key={log.id}
-                    onClick={() => handleWorkLogClick(log)}
-                    className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="p-4 hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex-1">
+                      <div
+                        className="flex-1 cursor-pointer"
+                        onClick={() => handleWorkLogClick(log)}
+                      >
                         <div className="flex items-center gap-2 mb-1">
                           <p className="font-medium text-gray-800">
                             {dayjs(log.date).format("MM/DD (ddd)")}
@@ -322,23 +401,33 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                           시간)
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-gray-800">
-                          {dailyPay.toLocaleString()}원
-                        </p>
-                        <svg
-                          className="w-4 h-4 text-gray-400 ml-auto mt-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <p className="font-semibold text-gray-800">
+                            {dailyPay.toLocaleString()}원
+                          </p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteWorkLog(log.id);
+                          }}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -387,29 +476,70 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                 <div key={deduction.id} className="p-4">
                   <div className="flex justify-between items-center">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium text-gray-800">
                           {deduction.name}
                         </span>
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        <button
+                          onClick={() => handleToggleDeduction(deduction)}
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer ${
                             deduction.is_active
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
+                              ? "bg-green-100 text-green-800 hover:bg-green-200"
+                              : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                           }`}
                         >
                           {deduction.is_active ? "활성" : "비활성"}
-                        </span>
+                        </button>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-600">
                         {deduction.type === "fixed"
                           ? "고정금액"
                           : `비율 (${deduction.amount}%)`}
                       </p>
                     </div>
-                    <span className="font-semibold">
-                      {actualAmount.toLocaleString()}원
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">
+                        {actualAmount.toLocaleString()}원
+                      </span>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleEditDeduction(deduction)}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDeduction(deduction.id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               );
@@ -435,6 +565,22 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
         />
       )}
 
+      {showEditDeductionModal && selectedDeduction && (
+        <DeductionModal
+          employee={employee}
+          deduction={selectedDeduction}
+          onClose={() => {
+            setShowEditDeductionModal(false);
+            setSelectedDeduction(null);
+          }}
+          onSave={() => {
+            handleDeductionUpdate();
+            setShowEditDeductionModal(false);
+            setSelectedDeduction(null);
+          }}
+        />
+      )}
+
       {showWorkLogModal && selectedWorkLog && (
         <WorkLogModal
           employee={employee}
@@ -446,6 +592,145 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
           onSave={handleWorkLogUpdate}
         />
       )}
+
+      {showAddWorkLogModal && (
+        <WorkLogModal
+          employee={employee}
+          onClose={() => setShowAddWorkLogModal(false)}
+          onSave={() => {
+            handleWorkLogUpdate();
+            setShowAddWorkLogModal(false);
+          }}
+        />
+      )}
+
+      {/* 보너스 추가 모달 */}
+      {showAddBonusModal && (
+        <BonusModal
+          employee={employee}
+          onClose={() => setShowAddBonusModal(false)}
+          onSave={() => {
+            handleWorkLogUpdate();
+            setShowAddBonusModal(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// 보너스 모달 컴포넌트
+function BonusModal({
+  employee,
+  onClose,
+  onSave,
+}: {
+  employee: Employee;
+  onClose: () => void;
+  onSave: () => void;
+}) {
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!amount || !description) {
+      alert("모든 필드를 입력해주세요.");
+      return;
+    }
+
+    setLoading(true);
+    const supabase = createClient();
+
+    // 보너스를 특별한 근무 기록으로 저장 (시간은 0으로, 금액은 별도 계산)
+    const bonusAmount = parseInt(amount);
+    const equivalentHours = bonusAmount / employee.hourly_wage;
+
+    const { error } = await supabase.from("work_logs").insert({
+      user_id: employee.id,
+      date: date,
+      clock_in: "00:00",
+      clock_out: "00:00",
+      status: "approved",
+      // 보너스임을 표시하기 위한 특별한 형식
+      notes: `보너스: ${description} (${bonusAmount.toLocaleString()}원)`,
+    });
+
+    if (error) {
+      alert("보너스 추가 중 오류가 발생했습니다: " + error.message);
+    } else {
+      onSave();
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h3 className="text-lg font-semibold mb-4">보너스 추가</h3>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              날짜
+            </label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              보너스 금액 (원)
+            </label>
+            <input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="예: 50000"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              보너스 사유
+            </label>
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="예: 우수사원 보너스"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              취소
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+            >
+              {loading ? "추가 중..." : "추가"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
