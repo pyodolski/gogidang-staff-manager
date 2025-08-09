@@ -83,6 +83,11 @@ export default function WorkCalendar({ selectedMonth }: Props) {
 
         // 추가 공제 항목들 조회
         let additionalDeductions = 0;
+        let deductionDetails: Array<{
+          name: string;
+          amount: number;
+          type: string;
+        }> = [];
         if (user) {
           const { data: deductions } = await supabase
             .from("salary_deductions")
@@ -91,14 +96,20 @@ export default function WorkCalendar({ selectedMonth }: Props) {
             .eq("is_active", true);
 
           deductions?.forEach((deduction: any) => {
+            let deductionAmount = 0;
             if (deduction.type === "fixed") {
               // 일일 공제액 = 월 공제액 / 30일 (근사치, 소수점 버림)
-              additionalDeductions += Math.floor(deduction.amount / 30);
+              deductionAmount = Math.floor(deduction.amount / 30);
             } else {
-              additionalDeductions += Math.floor(
-                (totalPay * deduction.amount) / 100
-              );
+              deductionAmount = Math.floor((totalPay * deduction.amount) / 100);
             }
+            additionalDeductions += deductionAmount;
+            deductionDetails.push({
+              name: deduction.name,
+              amount: deductionAmount,
+              type:
+                deduction.type === "fixed" ? "고정" : `${deduction.amount}%`,
+            });
           });
         }
 
@@ -116,6 +127,7 @@ export default function WorkCalendar({ selectedMonth }: Props) {
           incomeTax,
           localTax,
           additionalDeductions,
+          deductionDetails,
           realPay,
         });
       } else {
@@ -185,43 +197,80 @@ export default function WorkCalendar({ selectedMonth }: Props) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">근무 시간:</span>
-                <span className="font-medium">
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 text-xs">근무 시간:</span>
+                <span className="font-medium text-xs">
                   {detail.clock_in} ~ {detail.clock_out}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">총 시간:</span>
-                <span className="font-medium">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 text-xs">총 시간:</span>
+                <span className="font-medium text-xs">
                   {detail.hours.toFixed(1)}시간
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">총 급여:</span>
-                <span className="font-medium">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 text-xs">총 급여:</span>
+                <span className="font-medium text-xs">
                   {detail.totalPay.toLocaleString()}원
                 </span>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">소득세:</span>
-                <span>{detail.incomeTax.toLocaleString()}원</span>
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 text-xs">소득세:</span>
+                <span className="text-xs">
+                  {detail.incomeTax.toLocaleString()}원
+                </span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">지방세:</span>
-                <span>{detail.localTax.toLocaleString()}원</span>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 text-xs">지방세:</span>
+                <span className="text-xs">
+                  {detail.localTax.toLocaleString()}원
+                </span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">기타 공제:</span>
-                <span>{detail.additionalDeductions.toLocaleString()}원</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-blue-200">
-                <span className="font-medium text-gray-800">실지급액:</span>
-                <span className="font-bold text-blue-600">
+              {detail.deductionDetails && detail.deductionDetails.length > 0 ? (
+                <div className="space-y-0.5">
+                  <div className="text-xs text-gray-600 font-medium">
+                    기타 공제:
+                  </div>
+                  {detail.deductionDetails.map(
+                    (deduction: any, index: number) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center pl-2"
+                      >
+                        <span className="text-gray-500 text-xs truncate flex-1 mr-2">
+                          • {deduction.name} ({deduction.type})
+                        </span>
+                        <span className="text-xs whitespace-nowrap">
+                          {deduction.amount.toLocaleString()}원
+                        </span>
+                      </div>
+                    )
+                  )}
+                  <div className="flex justify-between items-center pt-1 border-t border-gray-200">
+                    <span className="text-gray-600 text-xs">공제 합계:</span>
+                    <span className="text-xs">
+                      {detail.additionalDeductions.toLocaleString()}원
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 text-xs">기타 공제:</span>
+                  <span className="text-xs">
+                    {detail.additionalDeductions.toLocaleString()}원
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between items-center pt-2 border-t border-blue-200">
+                <span className="font-medium text-gray-800 text-sm">
+                  실지급액:
+                </span>
+                <span className="font-bold text-blue-600 text-sm">
                   {detail.realPay.toLocaleString()}원
                 </span>
               </div>
