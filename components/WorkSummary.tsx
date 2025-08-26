@@ -43,6 +43,11 @@ export default function WorkSummary({
       // 총 근무시간(분 단위 합산)
       let totalMinutes = 0;
       logs?.forEach((log: any) => {
+        // 휴무인 경우 시간 계산하지 않음
+        if (log.work_type === "day_off" || !log.clock_in || !log.clock_out) {
+          return;
+        }
+
         // 시간 문자열을 더 안전하게 파싱
         const clockInStr = log.clock_in.includes(":")
           ? log.clock_in

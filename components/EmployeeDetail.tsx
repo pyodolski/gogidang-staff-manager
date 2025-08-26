@@ -17,9 +17,10 @@ type WorkLog = {
   id: number;
   user_id: string;
   date: string;
-  clock_in: string;
-  clock_out: string;
+  clock_in: string | null;
+  clock_out: string | null;
   status: string;
+  work_type?: string;
   created_at: string;
 };
 
@@ -89,7 +90,15 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
     setLoading(false);
   };
 
-  const calculateWorkHours = (clockIn: string, clockOut: string) => {
+  const calculateWorkHours = (
+    clockIn: string | null,
+    clockOut: string | null,
+    workType?: string
+  ) => {
+    if (workType === "day_off" || !clockIn || !clockOut) {
+      return 0;
+    }
+
     const clockInStr = clockIn.includes(":") ? clockIn : clockIn + ":00";
     const clockOutStr = clockOut.includes(":") ? clockOut : clockOut + ":00";
 
@@ -176,7 +185,8 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
   // 급여 계산
   const approvedLogs = workLogs.filter((log) => log.status === "approved");
   const totalHours = approvedLogs.reduce(
-    (sum, log) => sum + calculateWorkHours(log.clock_in, log.clock_out),
+    (sum, log) =>
+      sum + calculateWorkHours(log.clock_in, log.clock_out, log.work_type),
     0
   );
   const grossPay = Math.floor(totalHours * employee.hourly_wage);
@@ -364,13 +374,20 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
               </div>
             ) : (
               workLogs.map((log) => {
-                const hours = calculateWorkHours(log.clock_in, log.clock_out);
+                const hours = calculateWorkHours(
+                  log.clock_in,
+                  log.clock_out,
+                  log.work_type
+                );
                 const dailyPay = Math.floor(hours * employee.hourly_wage);
+                const isOffDay = log.work_type === "day_off";
 
                 return (
                   <div
                     key={log.id}
-                    className="p-4 hover:bg-gray-50 transition-colors"
+                    className={`p-4 hover:bg-gray-50 transition-colors ${
+                      isOffDay ? "bg-yellow-50" : ""
+                    }`}
                   >
                     <div className="flex items-center justify-between">
                       <div
@@ -381,6 +398,11 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                           <p className="font-medium text-gray-800">
                             {dayjs(log.date).format("MM/DD (ddd)")}
                           </p>
+                          {isOffDay && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              휴무
+                            </span>
+                          )}
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                               log.status === "approved"
@@ -398,14 +420,20 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                           </span>
                         </div>
                         <div className="text-sm text-gray-600">
-                          {log.clock_in} ~ {log.clock_out} ({hours.toFixed(1)}
-                          시간)
+                          {isOffDay ? (
+                            "휴무일"
+                          ) : (
+                            <>
+                              {log.clock_in} ~ {log.clock_out} (
+                              {hours.toFixed(1)}시간)
+                            </>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="text-right">
                           <p className="font-semibold text-gray-800">
-                            {dailyPay.toLocaleString()}원
+                            {isOffDay ? "-" : `${dailyPay.toLocaleString()}원`}
                           </p>
                         </div>
                         <button

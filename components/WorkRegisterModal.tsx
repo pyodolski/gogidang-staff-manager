@@ -1,68 +1,79 @@
-import { useState } from 'react';
-import { createClient } from '../lib/supabase/client';
-import dayjs from 'dayjs';
+import { useState } from "react";
+import { createClient } from "../lib/supabase/client";
+import dayjs from "dayjs";
 
 type Props = {
   onClose: () => void;
 };
 
 export default function WorkRegisterModal({ onClose }: Props) {
-  const [date, setDate] = useState(dayjs().format('YYYY-MM-DD'));
-  const [clockIn, setClockIn] = useState('09:00');
-  const [clockOut, setClockOut] = useState('18:00');
+  const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const [workType, setWorkType] = useState("work");
+  const [clockIn, setClockIn] = useState("09:00");
+  const [clockOut, setClockOut] = useState("18:00");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
     setSuccess(false);
-    
+
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
-      setError('로그인이 필요합니다.');
+      setError("로그인이 필요합니다.");
       setLoading(false);
       return;
     }
     // 프로필 존재 확인 및 생성
     const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', user.id)
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
       .single();
 
     if (!profile) {
       // 프로필이 없으면 생성
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: user.id,
-          email: user.email,
-          full_name: user.user_metadata?.full_name || user.email,
-          role: 'employee',
-          hourly_wage: 10000
-        });
+      const { error: profileError } = await supabase.from("profiles").insert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || user.email,
+        role: "employee",
+        hourly_wage: 10000,
+      });
 
       if (profileError) {
-        setError('프로필 생성 실패: ' + profileError.message);
+        setError("프로필 생성 실패: " + profileError.message);
         setLoading(false);
         return;
       }
     }
 
-    const { error } = await supabase.from('work_logs').insert({
+    const workData: any = {
       user_id: user.id,
       date,
-      clock_in: clockIn + ':00',
-      clock_out: clockOut + ':00',
-      status: 'pending',
-    });
-    
+      work_type: workType,
+      status: "pending",
+    };
+
+    // 휴무가 아닌 경우에만 시간 정보 추가
+    if (workType !== "day_off") {
+      workData.clock_in = clockIn + ":00";
+      workData.clock_out = clockOut + ":00";
+    } else {
+      workData.clock_in = null;
+      workData.clock_out = null;
+    }
+
+    const { error } = await supabase.from("work_logs").insert(workData);
+
     if (error) {
-      setError('등록 실패: ' + error.message);
+      setError("등록 실패: " + error.message);
     } else {
       setSuccess(true);
       setTimeout(() => {
@@ -75,25 +86,83 @@ export default function WorkRegisterModal({ onClose }: Props) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
       <div className="bg-white rounded shadow p-6 w-full max-w-sm relative">
-        <button className="absolute top-2 right-2 text-gray-400" onClick={onClose}>&times;</button>
+        <button
+          className="absolute top-2 right-2 text-gray-400"
+          onClick={onClose}
+        >
+          &times;
+        </button>
         <h2 className="text-xl font-bold mb-4">근무 등록</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block mb-1">날짜</label>
-            <input type="date" value={date} onChange={e => setDate(e.target.value)} className="border rounded px-2 py-1 w-full" required />
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="border rounded px-2 py-1 w-full"
+              required
+            />
           </div>
           <div>
-            <label className="block mb-1">출근 시간</label>
-            <input type="time" value={clockIn} onChange={e => setClockIn(e.target.value)} className="border rounded px-2 py-1 w-full" required />
+            <label className="block mb-1">유형</label>
+            <select
+              value={workType}
+              onChange={(e) => setWorkType(e.target.value)}
+              className="border rounded px-2 py-1 w-full"
+            >
+              <option value="work">근무</option>
+              <option value="day_off">휴무 신청</option>
+            </select>
           </div>
-          <div>
-            <label className="block mb-1">퇴근 시간</label>
-            <input type="time" value={clockOut} onChange={e => setClockOut(e.target.value)} className="border rounded px-2 py-1 w-full" required />
-          </div>
+          {workType === "work" && (
+            <>
+              <div>
+                <label className="block mb-1">출근 시간</label>
+                <input
+                  type="time"
+                  value={clockIn}
+                  onChange={(e) => setClockIn(e.target.value)}
+                  className="border rounded px-2 py-1 w-full"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block mb-1">퇴근 시간</label>
+                <input
+                  type="time"
+                  value={clockOut}
+                  onChange={(e) => setClockOut(e.target.value)}
+                  className="border rounded px-2 py-1 w-full"
+                  required
+                />
+              </div>
+            </>
+          )}
+          {workType === "day_off" && (
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="w-5 h-5 text-yellow-600"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                </svg>
+                <span className="text-sm text-yellow-800">
+                  휴무 신청입니다. 관리자 승인 후 적용됩니다.
+                </span>
+              </div>
+            </div>
+          )}
           {error && <div className="text-red-600 text-sm">{error}</div>}
           {success && <div className="text-green-600 text-sm">등록 완료!</div>}
-          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full" disabled={loading}>
-            {loading ? '등록 중...' : '등록'}
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
+            disabled={loading}
+          >
+            {loading ? "등록 중..." : "등록"}
           </button>
         </form>
       </div>

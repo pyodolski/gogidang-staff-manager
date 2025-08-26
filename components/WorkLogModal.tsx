@@ -13,9 +13,10 @@ type WorkLog = {
   id: number;
   user_id: string;
   date: string;
-  clock_in: string;
-  clock_out: string;
+  clock_in: string | null;
+  clock_out: string | null;
   status: string;
+  work_type?: string;
   created_at: string;
 };
 
@@ -35,6 +36,7 @@ export default function WorkLogModal({
   const [date, setDate] = useState(
     workLog?.date || dayjs().format("YYYY-MM-DD")
   );
+  const [workType, setWorkType] = useState(workLog?.work_type || "work");
   const [clockIn, setClockIn] = useState(
     workLog?.clock_in ? workLog.clock_in.substring(0, 5) : "09:00"
   );
@@ -53,13 +55,21 @@ export default function WorkLogModal({
     const supabase = createClient();
 
     try {
-      const workData = {
+      const workData: any = {
         user_id: employee.id,
         date,
-        clock_in: clockIn + ":00",
-        clock_out: clockOut + ":00",
+        work_type: workType,
         status,
       };
+
+      // 휴무가 아닌 경우에만 시간 정보 추가
+      if (workType !== "day_off") {
+        workData.clock_in = clockIn + ":00";
+        workData.clock_out = clockOut + ":00";
+      } else {
+        workData.clock_in = null;
+        workData.clock_out = null;
+      }
 
       let result;
       if (workLog) {
@@ -86,14 +96,18 @@ export default function WorkLogModal({
   };
 
   const calculateWorkHours = () => {
+    if (workType === "day_off") {
+      return "휴무";
+    }
+
     const start = dayjs(`2024-01-01 ${clockIn}:00`);
     const end = dayjs(`2024-01-01 ${clockOut}:00`);
 
     if (start.isValid() && end.isValid() && end.isAfter(start)) {
       const minutes = end.diff(start, "minute");
-      return (minutes / 60).toFixed(1);
+      return (minutes / 60).toFixed(1) + "시간";
     }
-    return "0.0";
+    return "0.0시간";
   };
 
   return (
@@ -129,28 +143,63 @@ export default function WorkLogModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">출근시간</label>
-              <input
-                type="time"
-                value={clockIn}
-                onChange={(e) => setClockIn(e.target.value)}
-                className="w-full border rounded px-3 py-2"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">퇴근시간</label>
-              <input
-                type="time"
-                value={clockOut}
-                onChange={(e) => setClockOut(e.target.value)}
-                className="w-full border rounded px-3 py-2"
-                required
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">유형</label>
+            <select
+              value={workType}
+              onChange={(e) => setWorkType(e.target.value)}
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value="work">근무</option>
+              <option value="day_off">휴무</option>
+            </select>
           </div>
+
+          {workType === "work" && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  출근시간
+                </label>
+                <input
+                  type="time"
+                  value={clockIn}
+                  onChange={(e) => setClockIn(e.target.value)}
+                  className="w-full border rounded px-3 py-2"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  퇴근시간
+                </label>
+                <input
+                  type="time"
+                  value={clockOut}
+                  onChange={(e) => setClockOut(e.target.value)}
+                  className="w-full border rounded px-3 py-2"
+                  required
+                />
+              </div>
+            </div>
+          )}
+
+          {workType === "day_off" && (
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="w-5 h-5 text-yellow-600"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                </svg>
+                <span className="text-sm text-yellow-800">
+                  휴무로 등록됩니다. 해당 날짜에는 근무 등록이 불가능합니다.
+                </span>
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium mb-1">상태</label>
@@ -167,7 +216,15 @@ export default function WorkLogModal({
 
           <div className="p-3 bg-gray-50 rounded">
             <div className="text-sm text-gray-600">
-              예상 근무시간: <strong>{calculateWorkHours()}시간</strong>
+              {workType === "work" ? (
+                <>
+                  예상 근무시간: <strong>{calculateWorkHours()}</strong>
+                </>
+              ) : (
+                <>
+                  유형: <strong className="text-yellow-600">휴무</strong>
+                </>
+              )}
             </div>
           </div>
 

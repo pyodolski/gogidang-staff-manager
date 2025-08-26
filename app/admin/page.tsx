@@ -7,7 +7,6 @@ import PendingWorkApproval from "../../components/PendingWorkApproval";
 import EmployeeManagement from "../../components/EmployeeManagement";
 
 export default function AdminPage() {
-  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"approval" | "employees">(
     "approval"
@@ -47,7 +46,6 @@ export default function AdminPage() {
         return;
       }
 
-      setUser(user);
       setLoading(false);
     };
 

@@ -7,9 +7,10 @@ type WorkLog = {
   id: number;
   user_id: string;
   date: string;
-  clock_in: string;
-  clock_out: string;
+  clock_in: string | null;
+  clock_out: string | null;
   status: string;
+  work_type?: string;
   created_at: string;
   profiles: {
     full_name: string;
@@ -79,7 +80,15 @@ export default function PendingWorkApproval() {
     });
   };
 
-  const calculateWorkHours = (clockIn: string, clockOut: string) => {
+  const calculateWorkHours = (
+    clockIn: string | null,
+    clockOut: string | null,
+    workType?: string
+  ) => {
+    if (workType === "day_off" || !clockIn || !clockOut) {
+      return "휴무";
+    }
+
     // 시간 문자열을 더 안전하게 파싱
     const clockInStr = clockIn.includes(":") ? clockIn : clockIn + ":00";
     const clockOutStr = clockOut.includes(":") ? clockOut : clockOut + ":00";
@@ -213,136 +222,189 @@ export default function PendingWorkApproval() {
       </div>
 
       <div className="space-y-4">
-        {pendingLogs.map((log) => (
-          <div
-            key={log.id}
-            className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-          >
-            {/* 직원 정보 헤더 */}
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-yellow-100 rounded-full p-2">
-                  <svg
-                    className="w-5 h-5 text-yellow-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+        {pendingLogs.map((log) => {
+          const isOffDay = log.work_type === "day_off";
+
+          return (
+            <div
+              key={log.id}
+              className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                isOffDay
+                  ? "bg-blue-50 border-blue-200"
+                  : "bg-yellow-50 border-yellow-200"
+              }`}
+            >
+              {/* 직원 정보 헤더 */}
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`rounded-full p-2 ${
+                      isOffDay ? "bg-blue-100" : "bg-yellow-100"
+                    }`}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
+                    {isOffDay ? (
+                      <svg
+                        className="w-5 h-5 text-blue-600"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-5 h-5 text-yellow-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800">
+                      {log.profiles?.full_name || "이름 없음"}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {log.profiles?.email}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-800">
-                    {log.profiles?.full_name || "이름 없음"}
-                  </h3>
-                  <p className="text-sm text-gray-600">{log.profiles?.email}</p>
+                <div className="flex items-center gap-2">
+                  {isOffDay && (
+                    <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">
+                      휴무 신청
+                    </div>
+                  )}
+                  <div
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      isOffDay
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    승인 대기
+                  </div>
                 </div>
               </div>
-              <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium">
-                승인 대기
-              </div>
-            </div>
 
-            {/* 근무 정보 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 text-sm">근무일:</span>
-                  <span className="font-medium">
-                    {dayjs(log.date).format("YYYY년 MM월 DD일 (ddd)")}
-                  </span>
+              {/* 근무 정보 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 text-sm">날짜:</span>
+                    <span className="font-medium">
+                      {dayjs(log.date).format("YYYY년 MM월 DD일 (ddd)")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 text-sm">
+                      {isOffDay ? "유형:" : "근무시간:"}
+                    </span>
+                    <span className="font-medium">
+                      {isOffDay ? (
+                        <span className="text-blue-600">휴무</span>
+                      ) : (
+                        `${log.clock_in} ~ ${log.clock_out}`
+                      )}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 text-sm">근무시간:</span>
-                  <span className="font-medium">
-                    {log.clock_in} ~ {log.clock_out}
-                  </span>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 text-sm">
+                      {isOffDay ? "상태:" : "총 시간:"}
+                    </span>
+                    <span className="font-medium">
+                      {isOffDay ? (
+                        <span className="text-blue-600">휴무일</span>
+                      ) : (
+                        `${calculateWorkHours(
+                          log.clock_in,
+                          log.clock_out,
+                          log.work_type
+                        )}시간`
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 text-sm">등록일:</span>
+                    <span className="font-medium">
+                      {dayjs(log.created_at).format("MM-DD HH:mm")}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 text-sm">총 시간:</span>
-                  <span className="font-medium">
-                    {calculateWorkHours(log.clock_in, log.clock_out)}시간
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 text-sm">등록일:</span>
-                  <span className="font-medium">
-                    {dayjs(log.created_at).format("MM-DD HH:mm")}
-                  </span>
-                </div>
-              </div>
-            </div>
 
-            {/* 액션 버튼 */}
-            <div className="flex gap-3 pt-3 border-t border-yellow-200">
-              <button
-                onClick={() => handleApproval(log.id, "approved")}
-                disabled={processingIds.has(log.id)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {processingIds.has(log.id) ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    처리중...
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    승인
-                  </>
-                )}
-              </button>
-              <button
-                onClick={() => handleApproval(log.id, "rejected")}
-                disabled={processingIds.has(log.id)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {processingIds.has(log.id) ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    처리중...
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                    거절
-                  </>
-                )}
-              </button>
+              {/* 액션 버튼 */}
+              <div className="flex gap-3 pt-3 border-t border-yellow-200">
+                <button
+                  onClick={() => handleApproval(log.id, "approved")}
+                  disabled={processingIds.has(log.id)}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {processingIds.has(log.id) ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      처리중...
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      승인
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => handleApproval(log.id, "rejected")}
+                  disabled={processingIds.has(log.id)}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {processingIds.has(log.id) ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      처리중...
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                      거절
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

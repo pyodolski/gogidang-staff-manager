@@ -105,6 +105,11 @@ export default function EmployeeManagement() {
 
     let totalMinutes = 0;
     logs?.forEach((log: any) => {
+      // 휴무인 경우 시간 계산하지 않음
+      if (log.work_type === "day_off" || !log.clock_in || !log.clock_out) {
+        return;
+      }
+
       const clockInStr = log.clock_in.includes(":")
         ? log.clock_in
         : log.clock_in + ":00";
