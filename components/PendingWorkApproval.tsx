@@ -11,6 +11,7 @@ type WorkLog = {
   clock_out: string | null;
   status: string;
   work_type?: string;
+  day_off_reason?: string;
   created_at: string;
   profiles: {
     full_name: string;
@@ -314,6 +315,30 @@ export default function PendingWorkApproval() {
                       )}
                     </span>
                   </div>
+                  {/* 휴무 사유 표시 */}
+                  {isOffDay && log.day_off_reason && (
+                    <div className="col-span-2">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <svg
+                            className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                          </svg>
+                          <div>
+                            <div className="text-sm font-medium text-blue-800 mb-1">
+                              휴무 사유
+                            </div>
+                            <div className="text-sm text-blue-700">
+                              {log.day_off_reason}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between">

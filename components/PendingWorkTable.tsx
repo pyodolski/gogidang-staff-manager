@@ -327,7 +327,14 @@ export default function PendingWorkTable() {
                     </h3>
                     <p className="text-sm text-gray-600 mt-1">
                       {(log.work_type || "work") === "day_off" ? (
-                        <span className="text-yellow-600">휴무일</span>
+                        <div>
+                          <span className="text-yellow-600">휴무일</span>
+                          {log.day_off_reason && (
+                            <div className="text-xs text-gray-500 mt-1 bg-gray-50 px-2 py-1 rounded">
+                              사유: {log.day_off_reason}
+                            </div>
+                          )}
+                        </div>
                       ) : (
                         <>
                           {log.clock_in} ~ {log.clock_out} (
