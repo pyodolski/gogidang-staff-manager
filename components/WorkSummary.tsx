@@ -24,14 +24,32 @@ export default function WorkSummary({
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
-      // 해당 월의 승인된 근무 내역
-      const { data: logs } = await supabase
-        .from("work_logs")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("status", "approved")
-        .gte("date", dayjs(selectedMonth).startOf("month").format("YYYY-MM-DD"))
-        .lte("date", dayjs(selectedMonth).endOf("month").format("YYYY-MM-DD"));
+      // 해당 월의 승인된 근무 내역 (work_type 컬럼이 없을 수도 있으므로 에러 처리)
+      let logs: any[] = [];
+      try {
+        const { data, error } = await supabase
+          .from("work_logs")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("status", "approved")
+          .gte(
+            "date",
+            dayjs(selectedMonth).startOf("month").format("YYYY-MM-DD")
+          )
+          .lte(
+            "date",
+            dayjs(selectedMonth).endOf("month").format("YYYY-MM-DD")
+          );
+
+        if (error) {
+          console.error("Error fetching work logs:", error);
+        } else {
+          logs = data || [];
+        }
+      } catch (err) {
+        console.error("Database query error:", err);
+        logs = [];
+      }
       // 시급: profiles 테이블에서 가져오거나, 임시로 10000원
       let hourly = 10000;
       const { data: profile } = await supabase
@@ -43,8 +61,11 @@ export default function WorkSummary({
       // 총 근무시간(분 단위 합산)
       let totalMinutes = 0;
       logs?.forEach((log: any) => {
+        // work_type이 없는 경우 기본값으로 'work' 처리
+        const workType = log.work_type || "work";
+
         // 휴무인 경우 시간 계산하지 않음
-        if (log.work_type === "day_off" || !log.clock_in || !log.clock_out) {
+        if (workType === "day_off" || !log.clock_in || !log.clock_out) {
           return;
         }
 

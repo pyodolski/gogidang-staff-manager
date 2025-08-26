@@ -105,7 +105,7 @@ export default function EmployeeManagement() {
 
     let totalMinutes = 0;
     logs?.forEach((log: any) => {
-      // 휴무인 경우 시간 계산하지 않음
+      // 휴무인 경우 시간 계산하지 않음 (work_type이 없는 경우 기본적으로 근무로 처리)
       if (log.work_type === "day_off" || !log.clock_in || !log.clock_out) {
         return;
       }

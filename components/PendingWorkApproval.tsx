@@ -86,7 +86,7 @@ export default function PendingWorkApproval() {
     workType?: string
   ) => {
     if (workType === "day_off" || !clockIn || !clockOut) {
-      return "휴무";
+      return workType === "day_off" ? "휴무" : "0.00";
     }
 
     // 시간 문자열을 더 안전하게 파싱

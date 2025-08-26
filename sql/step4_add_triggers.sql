@@ -1,20 +1,5 @@
--- 1단계: work_type 컬럼 추가 (제약조건 없이)
-ALTER TABLE work_logs 
-ADD COLUMN IF NOT EXISTS work_type VARCHAR(20) DEFAULT 'work';
-
--- 2단계: 기존 데이터의 work_type을 'work'로 설정
-UPDATE work_logs SET work_type = 'work' WHERE work_type IS NULL;
-
--- 3단계: work_type이 'day_off'인 경우 clock_in, clock_out은 NULL 허용
-ALTER TABLE work_logs 
-ALTER COLUMN clock_in DROP NOT NULL,
-ALTER COLUMN clock_out DROP NOT NULL;
-
--- 4단계: work_type에 제약조건 추가
-ALTER TABLE work_logs 
-ADD CONSTRAINT work_type_check CHECK (work_type IN ('work', 'day_off', 'bonus'));
-
--- 휴무일 체크를 위한 함수 (직원이 해당 날짜에 근무 등록할 수 없도록)
+-- 4단계: 트리거 함수 및 트리거 생성
+-- 휴무일 체크를 위한 함수
 CREATE OR REPLACE FUNCTION check_day_off_conflict()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -44,12 +29,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 트리거 생성
+-- 기존 트리거 삭제 후 새로 생성
 DROP TRIGGER IF EXISTS check_day_off_conflict_trigger ON work_logs;
 CREATE TRIGGER check_day_off_conflict_trigger
   BEFORE INSERT OR UPDATE ON work_logs
   FOR EACH ROW
   EXECUTE FUNCTION check_day_off_conflict();
 
--- 기존 데이터의 work_type을 'work'로 설정
-UPDATE work_logs SET work_type = 'work' WHERE work_type IS NULL;
+RAISE NOTICE '휴무일 충돌 방지 트리거가 생성되었습니다.';

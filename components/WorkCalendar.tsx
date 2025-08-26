@@ -21,14 +21,31 @@ export default function WorkCalendar({ selectedMonth }: Props) {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase
-        .from("work_logs")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("status", "approved")
-        .gte("date", dayjs(selectedMonth).startOf("month").format("YYYY-MM-DD"))
-        .lte("date", dayjs(selectedMonth).endOf("month").format("YYYY-MM-DD"));
-      setLogs(data || []);
+      try {
+        const { data, error } = await supabase
+          .from("work_logs")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("status", "approved")
+          .gte(
+            "date",
+            dayjs(selectedMonth).startOf("month").format("YYYY-MM-DD")
+          )
+          .lte(
+            "date",
+            dayjs(selectedMonth).endOf("month").format("YYYY-MM-DD")
+          );
+
+        if (error) {
+          console.error("Error fetching work logs:", error);
+          setLogs([]);
+        } else {
+          setLogs(data || []);
+        }
+      } catch (err) {
+        console.error("Database query error:", err);
+        setLogs([]);
+      }
     };
     fetchLogs();
   }, [selectedMonth]);
@@ -36,7 +53,8 @@ export default function WorkCalendar({ selectedMonth }: Props) {
   const tileContent = ({ date }: { date: Date }) => {
     const found = logs.find((log) => dayjs(log.date).isSame(date, "day"));
     if (found) {
-      const isOffDay = found.work_type === "day_off";
+      const workType = found.work_type || "work";
+      const isOffDay = workType === "day_off";
       return (
         <div
           className={`w-2 h-2 rounded-full mx-auto mt-1 ${
@@ -53,7 +71,8 @@ export default function WorkCalendar({ selectedMonth }: Props) {
     const found = logs.find((log) => dayjs(log.date).isSame(date, "day"));
     if (found) {
       // 휴무인 경우
-      if (found.work_type === "day_off") {
+      const workType = found.work_type || "work";
+      if (workType === "day_off") {
         setDetail({
           date: dayjs(found.date).format("YYYY년 MM월 DD일"),
           type: "휴무",
