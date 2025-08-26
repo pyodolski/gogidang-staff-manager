@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import dayjs from "dayjs";
+import WorkEditModal from "./WorkEditModal";
 
 export default function PendingWorkTable() {
   const [workLogs, setWorkLogs] = useState<any[]>([]);
@@ -8,6 +9,8 @@ export default function PendingWorkTable() {
   const [filter, setFilter] = useState<
     "all" | "pending" | "approved" | "rejected"
   >("all");
+  const [editingLog, setEditingLog] = useState<any | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const fetchWorkLogs = async () => {
     setLoading(true);
@@ -41,6 +44,34 @@ export default function PendingWorkTable() {
       setWorkLogs([]);
     }
     setLoading(false);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("정말로 이 근무 기록을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    setDeletingId(id);
+    const supabase = createClient();
+
+    try {
+      const { error } = await supabase.from("work_logs").delete().eq("id", id);
+
+      if (error) {
+        alert("삭제 실패: " + error.message);
+      } else {
+        fetchWorkLogs(); // 목록 새로고침
+      }
+    } catch (err: any) {
+      alert("삭제 중 오류가 발생했습니다: " + err.message);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleEditSave = () => {
+    setEditingLog(null);
+    fetchWorkLogs(); // 목록 새로고침
   };
 
   useEffect(() => {
@@ -250,7 +281,9 @@ export default function PendingWorkTable() {
               : `${getStatusText(filter)} 근무 내역이 없습니다.`}
           </p>
           <p className="text-gray-400 text-sm mt-1">
-            근무 등록 버튼을 눌러 새로운 근무를 등록해보세요.
+            {filter === "pending"
+              ? "승인 대기 중인 근무 기록이 없습니다."
+              : "근무 등록 버튼을 눌러 새로운 근무를 등록해보세요."}
           </p>
         </div>
       ) : (
@@ -315,69 +348,145 @@ export default function PendingWorkTable() {
                   </span>
                 </div>
 
-                <div className="flex justify-between items-center text-sm text-gray-600">
-                  <span>
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-600">
                     등록일: {dayjs(log.created_at).format("MM-DD HH:mm")}
-                  </span>
-                  {log.status === "pending" && (
-                    <div className="flex items-center gap-1 text-yellow-600">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      승인 대기중
-                    </div>
-                  )}
-                  {log.status === "approved" && (
-                    <div className="flex items-center gap-1 text-green-600">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      승인 완료
-                    </div>
-                  )}
-                  {log.status === "rejected" && (
-                    <div className="flex items-center gap-1 text-red-600">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                      승인 거절
-                    </div>
-                  )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* 상태 표시 */}
+                    {log.status === "pending" && (
+                      <div className="flex items-center gap-1 text-yellow-600">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span className="text-xs">승인 대기중</span>
+                      </div>
+                    )}
+                    {log.status === "approved" && (
+                      <div className="flex items-center gap-1 text-green-600">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                        <span className="text-xs">승인 완료</span>
+                      </div>
+                    )}
+                    {log.status === "rejected" && (
+                      <div className="flex items-center gap-1 text-red-600">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                        <span className="text-xs">승인 거절</span>
+                      </div>
+                    )}
+
+                    {/* 승인된 기록에 대한 안내 */}
+                    {log.status === "approved" && (
+                      <div className="text-xs text-gray-500">
+                        승인된 기록은 수정할 수 없습니다
+                      </div>
+                    )}
+
+                    {/* 거절된 기록에 대한 안내 */}
+                    {log.status === "rejected" && (
+                      <div className="text-xs text-gray-500">
+                        거절된 기록입니다
+                      </div>
+                    )}
+
+                    {/* 수정/삭제 버튼 (미승인 상태에서만 표시) */}
+                    {log.status === "pending" && (
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => setEditingLog(log)}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          title="수정"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(log.id)}
+                          disabled={deletingId === log.id}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                          title="삭제"
+                        >
+                          {deletingId === log.id ? (
+                            <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
+      )}
+
+      {/* 수정 모달 */}
+      {editingLog && (
+        <WorkEditModal
+          workLog={editingLog}
+          onClose={() => setEditingLog(null)}
+          onSave={handleEditSave}
+        />
       )}
     </div>
   );

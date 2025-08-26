@@ -14,6 +14,7 @@ export default function WorkRegisterModal({ onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [dateWarning, setDateWarning] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +28,30 @@ export default function WorkRegisterModal({ onClose }: Props) {
     } = await supabase.auth.getUser();
     if (!user) {
       setError("로그인이 필요합니다.");
+      setLoading(false);
+      return;
+    }
+
+    // 중복 검증: 같은 날짜에 이미 기록이 있는지 확인
+    const { data: existingLog, error: checkError } = await supabase
+      .from("work_logs")
+      .select("id, work_type")
+      .eq("user_id", user.id)
+      .eq("date", date)
+      .single();
+
+    if (checkError && checkError.code !== "PGRST116") {
+      setError("기록 확인 중 오류가 발생했습니다: " + checkError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (existingLog) {
+      const existingType =
+        existingLog.work_type === "day_off" ? "휴무" : "근무";
+      setError(
+        `${date}에 이미 ${existingType} 기록이 존재합니다. 하루에 하나의 기록만 등록할 수 있습니다.`
+      );
       setLoading(false);
       return;
     }
@@ -73,7 +98,19 @@ export default function WorkRegisterModal({ onClose }: Props) {
     const { error } = await supabase.from("work_logs").insert(workData);
 
     if (error) {
-      setError("등록 실패: " + error.message);
+      // 중복 제약조건 에러 처리
+      if (
+        error.code === "23505" &&
+        error.message.includes("work_logs_user_date_unique")
+      ) {
+        setError(
+          `${date}에 이미 근무 기록이 존재합니다. 하루에 하나의 기록만 등록할 수 있습니다.`
+        );
+      } else if (error.message.includes("이미 근무 기록이 존재합니다")) {
+        setError(error.message);
+      } else {
+        setError("등록 실패: " + error.message);
+      }
     } else {
       setSuccess(true);
       setTimeout(() => {
@@ -99,10 +136,48 @@ export default function WorkRegisterModal({ onClose }: Props) {
             <input
               type="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={async (e) => {
+                const selectedDate = e.target.value;
+                setDate(selectedDate);
+                setDateWarning("");
+
+                // 선택한 날짜에 이미 기록이 있는지 확인
+                const supabase = createClient();
+                const {
+                  data: { user },
+                } = await supabase.auth.getUser();
+                if (user) {
+                  const { data: existingLog } = await supabase
+                    .from("work_logs")
+                    .select("work_type")
+                    .eq("user_id", user.id)
+                    .eq("date", selectedDate)
+                    .single();
+
+                  if (existingLog) {
+                    const existingType =
+                      existingLog.work_type === "day_off" ? "휴무" : "근무";
+                    setDateWarning(
+                      `이 날짜에 이미 ${existingType} 기록이 있습니다.`
+                    );
+                  }
+                }
+              }}
               className="border rounded px-2 py-1 w-full"
               required
             />
+            {dateWarning && (
+              <div className="text-yellow-600 text-sm mt-1 flex items-center gap-1">
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                </svg>
+                {dateWarning}
+              </div>
+            )}
           </div>
           <div>
             <label className="block mb-1">유형</label>
