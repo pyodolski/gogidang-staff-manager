@@ -17,37 +17,35 @@ export default function PendingWorkTable() {
     } = await supabase.auth.getUser();
     if (!user) return;
 
-    let query = supabase
-      .from("work_logs")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+    try {
+      let query = supabase
+        .from("work_logs")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-    if (filter !== "all") {
-      query = query.eq("status", filter);
+      if (filter !== "all") {
+        query = query.eq("status", filter);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Error fetching work logs:", error);
+        setWorkLogs([]);
+      } else {
+        setWorkLogs(data || []);
+      }
+    } catch (err) {
+      console.error("Database query error:", err);
+      setWorkLogs([]);
     }
-
-    const { data } = await query;
-    setWorkLogs(data || []);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchWorkLogs();
   }, [filter]);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "text-yellow-600";
-      case "approved":
-        return "text-green-600";
-      case "rejected":
-        return "text-red-600";
-      default:
-        return "text-gray-600";
-    }
-  };
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -62,7 +60,16 @@ export default function PendingWorkTable() {
     }
   };
 
-  const calculateWorkHours = (clockIn: string, clockOut: string) => {
+  const calculateWorkHours = (
+    clockIn: string | null,
+    clockOut: string | null,
+    workType?: string
+  ) => {
+    // 휴무인 경우
+    if (workType === "day_off" || !clockIn || !clockOut) {
+      return workType === "day_off" ? "휴무" : "0.00";
+    }
+
     // 시간 문자열을 더 안전하게 파싱
     const clockInStr = clockIn.includes(":") ? clockIn : clockIn + ":00";
     const clockOutStr = clockOut.includes(":") ? clockOut : clockOut + ":00";
@@ -286,8 +293,19 @@ export default function PendingWorkTable() {
                       {dayjs(log.date).format("YYYY년 MM월 DD일 (ddd)")}
                     </h3>
                     <p className="text-sm text-gray-600 mt-1">
-                      {log.clock_in} ~ {log.clock_out} (
-                      {calculateWorkHours(log.clock_in, log.clock_out)}시간)
+                      {(log.work_type || "work") === "day_off" ? (
+                        <span className="text-yellow-600">휴무일</span>
+                      ) : (
+                        <>
+                          {log.clock_in} ~ {log.clock_out} (
+                          {calculateWorkHours(
+                            log.clock_in,
+                            log.clock_out,
+                            log.work_type
+                          )}
+                          시간)
+                        </>
+                      )}
                     </p>
                   </div>
                   <span

@@ -1,9 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
-import Calendar from "react-calendar";
 import dayjs from "dayjs";
-import "react-calendar/dist/Calendar.css";
 
 type Props = {
   selectedMonth: Date;
@@ -50,24 +48,26 @@ export default function WorkCalendar({ selectedMonth }: Props) {
     fetchLogs();
   }, [selectedMonth]);
 
-  const tileContent = ({ date }: { date: Date }) => {
-    const found = logs.find((log) => dayjs(log.date).isSame(date, "day"));
-    if (found) {
-      const workType = found.work_type || "work";
-      const isOffDay = workType === "day_off";
-      return (
-        <div
-          className={`w-2 h-2 rounded-full mx-auto mt-1 ${
-            isOffDay ? "bg-yellow-500" : "bg-blue-500"
-          }`}
-        />
-      );
+  // 간단한 캘린더 생성 함수
+  const generateCalendarDays = () => {
+    const startOfMonth = dayjs(selectedMonth).startOf("month");
+    const endOfMonth = dayjs(selectedMonth).endOf("month");
+    const startOfWeek = startOfMonth.startOf("week");
+    const endOfWeek = endOfMonth.endOf("week");
+
+    const days = [];
+    let current = startOfWeek;
+
+    while (current.isBefore(endOfWeek) || current.isSame(endOfWeek, "day")) {
+      days.push(current);
+      current = current.add(1, "day");
     }
-    return null;
+
+    return days;
   };
 
-  const handleDateClick = async (date: Date) => {
-    setSelectedDate(date);
+  const handleDateClick = async (date: dayjs.Dayjs) => {
+    setSelectedDate(date.toDate());
     const found = logs.find((log) => dayjs(log.date).isSame(date, "day"));
     if (found) {
       // 휴무인 경우
@@ -206,17 +206,71 @@ export default function WorkCalendar({ selectedMonth }: Props) {
         <h2 className="text-xl font-bold text-gray-800">근무 캘린더</h2>
       </div>
 
+      {/* 간단한 자체 캘린더 */}
       <div className="calendar-container">
-        <Calendar
-          value={selectedMonth}
-          onClickDay={handleDateClick}
-          tileContent={tileContent}
-          calendarType="gregory"
-          minDetail="month"
-          maxDetail="month"
-          activeStartDate={selectedMonth}
-          className="custom-calendar"
-        />
+        {/* 캘린더 헤더 */}
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-gray-800">
+            {dayjs(selectedMonth).format("YYYY년 MM월")}
+          </h3>
+        </div>
+
+        {/* 요일 헤더 */}
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
+            <div
+              key={day}
+              className="text-center text-sm font-medium text-gray-600 py-2"
+            >
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* 캘린더 날짜들 */}
+        <div className="grid grid-cols-7 gap-1">
+          {generateCalendarDays().map((date) => {
+            const isCurrentMonth = date.isSame(selectedMonth, "month");
+            const isToday = date.isSame(dayjs(), "day");
+            const found = logs.find((log) =>
+              dayjs(log.date).isSame(date, "day")
+            );
+            const workType = found?.work_type || "work";
+            const isOffDay = workType === "day_off";
+
+            return (
+              <button
+                key={date.format("YYYY-MM-DD")}
+                onClick={() => handleDateClick(date)}
+                className={`
+                  relative p-2 text-sm rounded-lg transition-colors min-h-[40px]
+                  ${
+                    isCurrentMonth
+                      ? "text-gray-800 hover:bg-blue-50"
+                      : "text-gray-300"
+                  }
+                  ${
+                    isToday ? "bg-yellow-100 text-yellow-800 font-semibold" : ""
+                  }
+                  ${
+                    selectedDate && date.isSame(selectedDate, "day")
+                      ? "bg-blue-500 text-white"
+                      : ""
+                  }
+                `}
+              >
+                {date.format("D")}
+                {found && (
+                  <div
+                    className={`absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full ${
+                      isOffDay ? "bg-yellow-500" : "bg-blue-500"
+                    }`}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {detail && (
@@ -351,66 +405,6 @@ export default function WorkCalendar({ selectedMonth }: Props) {
           )}
         </div>
       )}
-
-      <style jsx>{`
-        .calendar-container :global(.custom-calendar) {
-          width: 100%;
-          border: none;
-          font-family: inherit;
-        }
-
-        .calendar-container :global(.react-calendar__navigation) {
-          display: flex;
-          height: 44px;
-          margin-bottom: 1rem;
-        }
-
-        .calendar-container :global(.react-calendar__navigation button) {
-          min-width: 44px;
-          background: none;
-          border: none;
-          font-size: 16px;
-          font-weight: 500;
-          color: #374151;
-        }
-
-        .calendar-container :global(.react-calendar__navigation button:hover) {
-          background-color: #f3f4f6;
-          border-radius: 6px;
-        }
-
-        .calendar-container :global(.react-calendar__month-view__weekdays) {
-          text-align: center;
-          text-transform: uppercase;
-          font-weight: 600;
-          font-size: 0.75rem;
-          color: #6b7280;
-        }
-
-        .calendar-container :global(.react-calendar__tile) {
-          max-width: 100%;
-          padding: 0.75rem 0.5rem;
-          background: none;
-          border: none;
-          font-size: 0.875rem;
-          border-radius: 6px;
-          position: relative;
-        }
-
-        .calendar-container :global(.react-calendar__tile:hover) {
-          background-color: #e0e7ff;
-        }
-
-        .calendar-container :global(.react-calendar__tile--active) {
-          background-color: #3b82f6 !important;
-          color: white;
-        }
-
-        .calendar-container :global(.react-calendar__tile--now) {
-          background-color: #fef3c7;
-          color: #92400e;
-        }
-      `}</style>
     </div>
   );
 }
