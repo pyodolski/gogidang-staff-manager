@@ -51,7 +51,7 @@ export default function WorkSummary({
         logs = [];
       }
       // 시급: profiles 테이블에서 가져오거나, 임시로 10000원
-      let hourly = 10000;
+      let hourly = 10030;
       const { data: profile } = await supabase
         .from("profiles")
         .select("hourly_wage")
@@ -80,8 +80,11 @@ export default function WorkSummary({
         // 오늘 날짜를 기준으로 시간 생성 (날짜 부분은 동일하게)
         const baseDate = "2024-01-01";
         const start = dayjs(`${baseDate} ${clockInStr}`);
-        const end = dayjs(`${baseDate} ${clockOutStr}`);
+        let end = dayjs(`${baseDate} ${clockOutStr}`);
 
+        if (end.isBefore(start)) {
+          end = end.add(1, "day");
+        }
         if (start.isValid() && end.isValid()) {
           const minutes = end.diff(start, "minute");
           totalMinutes += minutes;
