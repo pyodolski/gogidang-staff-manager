@@ -74,31 +74,37 @@ export default function WorkSummary({
       const totalHours = totalMinutes > 0 ? totalMinutes / 60 : 0;
       const totalPay = totalHours > 0 ? Math.floor(hourly * totalHours) : 0;
 
-      // 기본 세금 계산 (소수점 버림)
-      const incomeTax = totalPay > 0 ? Math.floor(totalPay * 0.03) : 0;
-      const localTax = totalPay > 0 ? Math.floor(totalPay * 0.003) : 0;
-
-      // 추가 공제 항목들 조회 (기타에 포함)
+      // 모든 공제 항목들 조회
       const { data: deductions } = await supabase
         .from("salary_deductions")
         .select("*")
         .eq("user_id", user.id)
         .eq("is_active", true);
 
-      let additionalDeductions = 0;
-      deductions?.forEach((deduction: any) => {
-        if (deduction.type === "fixed") {
-          additionalDeductions += deduction.amount;
-        } else {
-          additionalDeductions += Math.floor(
-            (totalPay * deduction.amount) / 100
-          );
-        }
-      });
+      // 공제 항목별 계산
+      let incomeTax = 0;
+      let localTax = 0;
+      let otherDeductions = 0;
 
-      const etc = Math.floor(additionalDeductions);
-      const realPay =
-        totalPay > 0 ? Math.floor(totalPay - (incomeTax + localTax + etc)) : 0;
+      if (deductions && deductions.length > 0) {
+        deductions.forEach((deduction: any) => {
+          const amount =
+            deduction.type === "fixed"
+              ? deduction.amount
+              : Math.floor((totalPay * deduction.amount) / 100);
+
+          if (deduction.name === "소득세") {
+            incomeTax = amount;
+          } else if (deduction.name === "지방세") {
+            localTax = amount;
+          } else {
+            otherDeductions += amount;
+          }
+        });
+      }
+
+      const totalDeductions = incomeTax + localTax + otherDeductions;
+      const realPay = totalPay > 0 ? Math.floor(totalPay - totalDeductions) : 0;
       setSummary({
         month: monthStr,
         totalHours,
@@ -106,7 +112,7 @@ export default function WorkSummary({
         totalPay,
         incomeTax,
         localTax,
-        etc,
+        etc: otherDeductions,
         realPay,
       });
       setLoading(false);

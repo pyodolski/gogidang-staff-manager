@@ -114,16 +114,17 @@ export default function WorkCalendar({ selectedMonth }: Props) {
       }
 
       const totalPay = hours > 0 ? Math.floor(hourly * hours) : 0;
-      const incomeTax = totalPay > 0 ? Math.floor(totalPay * 0.03) : 0;
-      const localTax = totalPay > 0 ? Math.floor(totalPay * 0.003) : 0;
 
-      // 추가 공제 항목들 조회
+      // 모든 공제 항목들 조회
+      let incomeTax = 0;
+      let localTax = 0;
       let additionalDeductions = 0;
       let deductionDetails: Array<{
         name: string;
         amount: number;
         type: string;
       }> = [];
+
       if (user) {
         const { data: deductions } = await supabase
           .from("salary_deductions")
@@ -131,27 +132,37 @@ export default function WorkCalendar({ selectedMonth }: Props) {
           .eq("user_id", user.id)
           .eq("is_active", true);
 
-        deductions?.forEach((deduction: any) => {
-          let deductionAmount = 0;
-          if (deduction.type === "fixed") {
-            // 일일 공제액 = 월 공제액 / 30일 (근사치, 소수점 버림)
-            deductionAmount = Math.floor(deduction.amount / 30);
-          } else {
-            deductionAmount = Math.floor((totalPay * deduction.amount) / 100);
-          }
-          additionalDeductions += deductionAmount;
-          deductionDetails.push({
-            name: deduction.name,
-            amount: deductionAmount,
-            type: deduction.type === "fixed" ? "고정" : `${deduction.amount}%`,
+        // 공제 항목이 있는 경우에만 계산
+        if (deductions && deductions.length > 0) {
+          deductions.forEach((deduction: any) => {
+            let deductionAmount = 0;
+            if (deduction.type === "fixed") {
+              // 일일 공제액 = 월 공제액 / 30일 (근사치, 소수점 버림)
+              deductionAmount = Math.floor(deduction.amount / 30);
+            } else {
+              deductionAmount = Math.floor((totalPay * deduction.amount) / 100);
+            }
+
+            if (deduction.name === "소득세") {
+              incomeTax = deductionAmount;
+            } else if (deduction.name === "지방세") {
+              localTax = deductionAmount;
+            } else {
+              additionalDeductions += deductionAmount;
+            }
+
+            deductionDetails.push({
+              name: deduction.name,
+              amount: deductionAmount,
+              type:
+                deduction.type === "fixed" ? "고정" : `${deduction.amount}%`,
+            });
           });
-        });
+        }
       }
 
-      const realPay =
-        totalPay > 0
-          ? Math.floor(totalPay - (incomeTax + localTax + additionalDeductions))
-          : 0;
+      const totalDeductions = incomeTax + localTax + additionalDeductions;
+      const realPay = totalPay > 0 ? Math.floor(totalPay - totalDeductions) : 0;
 
       setDetail({
         ...found,

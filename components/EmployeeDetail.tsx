@@ -169,23 +169,33 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
   );
   const grossPay = Math.floor(totalHours * employee.hourly_wage);
 
-  // 기본 세금 계산 (소수점 버림)
-  const incomeTax = Math.floor(grossPay * 0.03);
-  const localTax = Math.floor(grossPay * 0.003);
-
-  // 추가 공제 계산 (4대보험, 기타) - 소수점 버림
+  // 활성화된 공제 항목들만 필터링
   const activeDeductions = deductions.filter((d) => d.is_active);
-  const additionalDeductions = activeDeductions.reduce((sum, deduction) => {
-    if (deduction.type === "fixed") {
-      return sum + deduction.amount;
-    } else {
-      return sum + Math.floor((grossPay * deduction.amount) / 100);
-    }
-  }, 0);
 
-  const totalDeductions = Math.floor(
-    incomeTax + localTax + additionalDeductions
-  );
+  // 공제 항목별 계산
+  let incomeTax = 0;
+  let localTax = 0;
+  let additionalDeductions = 0;
+
+  // 공제 항목이 있는 경우에만 계산
+  if (activeDeductions.length > 0) {
+    activeDeductions.forEach((deduction) => {
+      const amount =
+        deduction.type === "fixed"
+          ? deduction.amount
+          : Math.floor((grossPay * deduction.amount) / 100);
+
+      if (deduction.name === "소득세") {
+        incomeTax = amount;
+      } else if (deduction.name === "지방세") {
+        localTax = amount;
+      } else {
+        additionalDeductions += amount;
+      }
+    });
+  }
+
+  const totalDeductions = incomeTax + localTax + additionalDeductions;
   const netPay = Math.floor(grossPay - totalDeductions);
 
   if (loading) {
