@@ -17,6 +17,7 @@ type WorkLog = {
   clock_in: string;
   clock_out: string;
   status: string;
+  work_type?: string;
 };
 
 type Deduction = {
@@ -79,21 +80,6 @@ export default function PayrollSlip({
     fetchData();
   }, [employee.id, selectedMonth]);
 
-  const calculateWorkHours = (clockIn: string, clockOut: string) => {
-    const clockInStr = clockIn.includes(":") ? clockIn : clockIn + ":00";
-    const clockOutStr = clockOut.includes(":") ? clockOut : clockOut + ":00";
-
-    const baseDate = "2024-01-01";
-    const start = dayjs(`${baseDate} ${clockInStr}`);
-    const end = dayjs(`${baseDate} ${clockOutStr}`);
-
-    if (start.isValid() && end.isValid()) {
-      const minutes = end.diff(start, "minute");
-      return minutes > 0 ? minutes / 60 : 0;
-    }
-    return 0;
-  };
-
   const handlePrint = () => {
     window.print();
   };
@@ -110,7 +96,8 @@ export default function PayrollSlip({
 
   // 급여 계산 (소수점 버림)
   const totalHours = workLogs.reduce(
-    (sum, log) => sum + calculateWorkHours(log.clock_in, log.clock_out),
+    (sum, log) =>
+      sum + calculateWorkHours(log.clock_in, log.clock_out, log.work_type),
     0
   );
   const grossPay = Math.floor(totalHours * employee.hourly_wage);
@@ -213,7 +200,8 @@ export default function PayrollSlip({
                   {workLogs.map((log) => {
                     const hours = calculateWorkHours(
                       log.clock_in,
-                      log.clock_out
+                      log.clock_out,
+                      log.work_type
                     );
                     const dailyPay = Math.floor(hours * employee.hourly_wage);
 
@@ -221,6 +209,11 @@ export default function PayrollSlip({
                       <tr key={log.id}>
                         <td className="border border-gray-300 py-2 px-3">
                           {dayjs(log.date).format("MM-DD (ddd)")}
+                          {isNightShift(log.clock_in, log.clock_out) && (
+                            <span className="text-xs text-purple-600 ml-1">
+                              (야간)
+                            </span>
+                          )}
                         </td>
                         <td className="border border-gray-300 py-2 px-3">
                           {log.clock_in}
