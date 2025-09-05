@@ -81,10 +81,8 @@ export default function WorkSummary({
         .eq("user_id", user.id)
         .eq("is_active", true);
 
-      // 공제 항목별 계산
-      let incomeTax = 0;
-      let localTax = 0;
-      let otherDeductions = 0;
+      // 모든 공제 항목 계산
+      let totalDeductions = 0;
 
       if (deductions && deductions.length > 0) {
         deductions.forEach((deduction: any) => {
@@ -92,27 +90,17 @@ export default function WorkSummary({
             deduction.type === "fixed"
               ? deduction.amount
               : Math.floor((totalPay * deduction.amount) / 100);
-
-          if (deduction.name === "소득세") {
-            incomeTax = amount;
-          } else if (deduction.name === "지방세") {
-            localTax = amount;
-          } else {
-            otherDeductions += amount;
-          }
+          totalDeductions += amount;
         });
       }
 
-      const totalDeductions = incomeTax + localTax + otherDeductions;
       const realPay = totalPay > 0 ? Math.floor(totalPay - totalDeductions) : 0;
       setSummary({
         month: monthStr,
         totalHours,
         hourly,
         totalPay,
-        incomeTax,
-        localTax,
-        etc: otherDeductions,
+        totalDeductions,
         realPay,
       });
       setLoading(false);
@@ -193,7 +181,7 @@ export default function WorkSummary({
       </div>
 
       {/* 상세 정보 그리드 */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 근무시간 */}
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="flex items-center gap-3">
@@ -275,7 +263,7 @@ export default function WorkSummary({
           </div>
         </div>
 
-        {/* 소득세 */}
+        {/* 총 공제 */}
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="flex items-center gap-3">
             <div className="bg-red-100 rounded-full p-2">
@@ -294,63 +282,9 @@ export default function WorkSummary({
               </svg>
             </div>
             <div>
-              <p className="text-sm text-gray-600">소득세</p>
+              <p className="text-sm text-gray-600">총 공제</p>
               <p className="text-lg font-semibold text-gray-800">
-                {summary.incomeTax.toLocaleString()}원
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 지방세 */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-red-100 rounded-full p-2">
-              <svg
-                className="w-5 h-5 text-red-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M20 12H4"
-                />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">지방세</p>
-              <p className="text-lg font-semibold text-gray-800">
-                {summary.localTax.toLocaleString()}원
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 기타 공제 */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-orange-100 rounded-full p-2">
-              <svg
-                className="w-5 h-5 text-orange-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 14l-7 7m0 0l-7-7m7 7V3"
-                />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">기타 공제</p>
-              <p className="text-lg font-semibold text-gray-800">
-                {summary.etc.toLocaleString()}원
+                {summary.totalDeductions.toLocaleString()}원
               </p>
             </div>
           </div>
