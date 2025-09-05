@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import dayjs from "dayjs";
+import { formatWorkHours } from "../lib/timeUtils";
 
 type WorkLog = {
   id: number;
@@ -79,32 +80,6 @@ export default function PendingWorkApproval() {
       newSet.delete(logId);
       return newSet;
     });
-  };
-
-  const calculateWorkHours = (
-    clockIn: string | null,
-    clockOut: string | null,
-    workType?: string
-  ) => {
-    if (workType === "day_off" || !clockIn || !clockOut) {
-      return workType === "day_off" ? "휴무" : "0.00";
-    }
-
-    // 시간 문자열을 더 안전하게 파싱
-    const clockInStr = clockIn.includes(":") ? clockIn : clockIn + ":00";
-    const clockOutStr = clockOut.includes(":") ? clockOut : clockOut + ":00";
-
-    // 오늘 날짜를 기준으로 시간 생성
-    const baseDate = "2024-01-01";
-    const start = dayjs(`${baseDate} ${clockInStr}`);
-    const end = dayjs(`${baseDate} ${clockOutStr}`);
-
-    if (start.isValid() && end.isValid()) {
-      const minutes = end.diff(start, "minute");
-      return minutes > 0 ? (minutes / 60).toFixed(2) : "0.00";
-    }
-
-    return "0.00";
   };
 
   if (loading) {
@@ -349,7 +324,7 @@ export default function PendingWorkApproval() {
                       {isOffDay ? (
                         <span className="text-blue-600">휴무일</span>
                       ) : (
-                        `${calculateWorkHours(
+                        `${formatWorkHours(
                           log.clock_in,
                           log.clock_out,
                           log.work_type

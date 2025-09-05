@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import dayjs from "dayjs";
 import WorkEditModal from "./WorkEditModal";
+import { formatWorkHours, isNightShift } from "../lib/timeUtils";
 
 export default function PendingWorkTable() {
   const [workLogs, setWorkLogs] = useState<any[]>([]);
@@ -89,33 +90,6 @@ export default function PendingWorkTable() {
       default:
         return status;
     }
-  };
-
-  const calculateWorkHours = (
-    clockIn: string | null,
-    clockOut: string | null,
-    workType?: string
-  ) => {
-    // 휴무인 경우
-    if (workType === "day_off" || !clockIn || !clockOut) {
-      return workType === "day_off" ? "휴무" : "0.00";
-    }
-
-    // 시간 문자열을 더 안전하게 파싱
-    const clockInStr = clockIn.includes(":") ? clockIn : clockIn + ":00";
-    const clockOutStr = clockOut.includes(":") ? clockOut : clockOut + ":00";
-
-    // 오늘 날짜를 기준으로 시간 생성
-    const baseDate = "2024-01-01";
-    const start = dayjs(`${baseDate} ${clockInStr}`);
-    const end = dayjs(`${baseDate} ${clockOutStr}`);
-
-    if (start.isValid() && end.isValid()) {
-      const minutes = end.diff(start, "minute");
-      return minutes > 0 ? (minutes / 60).toFixed(2) : "0.00";
-    }
-
-    return "0.00";
   };
 
   if (loading) {
@@ -337,13 +311,22 @@ export default function PendingWorkTable() {
                         </div>
                       ) : (
                         <>
-                          {log.clock_in} ~ {log.clock_out} (
-                          {calculateWorkHours(
-                            log.clock_in,
-                            log.clock_out,
-                            log.work_type
+                          {log.clock_in} ~ {log.clock_out}
+                          {isNightShift(log.clock_in, log.clock_out) && (
+                            <span className="text-xs text-purple-600 ml-1">
+                              (야간)
+                            </span>
                           )}
-                          시간)
+                          <br />
+                          <span className="text-xs text-gray-500">
+                            (
+                            {formatWorkHours(
+                              log.clock_in,
+                              log.clock_out,
+                              log.work_type
+                            )}
+                            시간)
+                          </span>
                         </>
                       )}
                     </p>

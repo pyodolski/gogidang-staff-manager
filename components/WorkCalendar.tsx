@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import dayjs from "dayjs";
+import { calculateWorkHours } from "../lib/timeUtils";
 
 type Props = {
   selectedMonth: Date;
@@ -89,97 +90,80 @@ export default function WorkCalendar({ selectedMonth }: Props) {
         return;
       }
 
-      // 시간 문자열을 더 안전하게 파싱
-      const clockInStr = found.clock_in.includes(":")
-        ? found.clock_in
-        : found.clock_in + ":00";
-      const clockOutStr = found.clock_out.includes(":")
-        ? found.clock_out
-        : found.clock_out + ":00";
+      // 근무 시간 계산 (야간 근무 지원)
+      const hours = calculateWorkHours(
+        found.clock_in,
+        found.clock_out,
+        found.work_type
+      );
 
-      // 오늘 날짜를 기준으로 시간 생성
-      const baseDate = "2024-01-01";
-      const start = dayjs(`${baseDate} ${clockInStr}`);
-      const end = dayjs(`${baseDate} ${clockOutStr}`);
+      // 시급 가져오기
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      let hourly = 10000;
 
-      if (start.isValid() && end.isValid()) {
-        const minutes = end.diff(start, "minute");
-        const hours = minutes > 0 ? minutes / 60 : 0;
-
-        // 시급 가져오기
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        let hourly = 10000;
-
-        if (user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("hourly_wage")
-            .eq("id", user.id)
-            .single();
-          if (profile?.hourly_wage) hourly = profile.hourly_wage;
-        }
-
-        const totalPay = hours > 0 ? Math.floor(hourly * hours) : 0;
-        const incomeTax = totalPay > 0 ? Math.floor(totalPay * 0.03) : 0;
-        const localTax = totalPay > 0 ? Math.floor(totalPay * 0.003) : 0;
-
-        // 추가 공제 항목들 조회
-        let additionalDeductions = 0;
-        let deductionDetails: Array<{
-          name: string;
-          amount: number;
-          type: string;
-        }> = [];
-        if (user) {
-          const { data: deductions } = await supabase
-            .from("salary_deductions")
-            .select("*")
-            .eq("user_id", user.id)
-            .eq("is_active", true);
-
-          deductions?.forEach((deduction: any) => {
-            let deductionAmount = 0;
-            if (deduction.type === "fixed") {
-              // 일일 공제액 = 월 공제액 / 30일 (근사치, 소수점 버림)
-              deductionAmount = Math.floor(deduction.amount / 30);
-            } else {
-              deductionAmount = Math.floor((totalPay * deduction.amount) / 100);
-            }
-            additionalDeductions += deductionAmount;
-            deductionDetails.push({
-              name: deduction.name,
-              amount: deductionAmount,
-              type:
-                deduction.type === "fixed" ? "고정" : `${deduction.amount}%`,
-            });
-          });
-        }
-
-        const realPay =
-          totalPay > 0
-            ? Math.floor(
-                totalPay - (incomeTax + localTax + additionalDeductions)
-              )
-            : 0;
-
-        setDetail({
-          ...found,
-          hours,
-          totalPay,
-          incomeTax,
-          localTax,
-          additionalDeductions,
-          deductionDetails,
-          realPay,
-          isOffDay: false,
-        });
-      } else {
-        console.error("Invalid time format:", found.clock_in, found.clock_out);
-        setDetail(null);
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("hourly_wage")
+          .eq("id", user.id)
+          .single();
+        if (profile?.hourly_wage) hourly = profile.hourly_wage;
       }
+
+      const totalPay = hours > 0 ? Math.floor(hourly * hours) : 0;
+      const incomeTax = totalPay > 0 ? Math.floor(totalPay * 0.03) : 0;
+      const localTax = totalPay > 0 ? Math.floor(totalPay * 0.003) : 0;
+
+      // 추가 공제 항목들 조회
+      let additionalDeductions = 0;
+      let deductionDetails: Array<{
+        name: string;
+        amount: number;
+        type: string;
+      }> = [];
+      if (user) {
+        const { data: deductions } = await supabase
+          .from("salary_deductions")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("is_active", true);
+
+        deductions?.forEach((deduction: any) => {
+          let deductionAmount = 0;
+          if (deduction.type === "fixed") {
+            // 일일 공제액 = 월 공제액 / 30일 (근사치, 소수점 버림)
+            deductionAmount = Math.floor(deduction.amount / 30);
+          } else {
+            deductionAmount = Math.floor((totalPay * deduction.amount) / 100);
+          }
+          additionalDeductions += deductionAmount;
+          deductionDetails.push({
+            name: deduction.name,
+            amount: deductionAmount,
+            type: deduction.type === "fixed" ? "고정" : `${deduction.amount}%`,
+          });
+        });
+      }
+
+      const realPay =
+        totalPay > 0
+          ? Math.floor(totalPay - (incomeTax + localTax + additionalDeductions))
+          : 0;
+
+      setDetail({
+        ...found,
+        hours,
+        totalPay,
+        incomeTax,
+        localTax,
+        additionalDeductions,
+        deductionDetails,
+        realPay,
+        isOffDay: false,
+      });
     } else {
       setDetail(null);
     }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import dayjs from "dayjs";
+import { calculateWorkMinutes } from "../lib/timeUtils";
 
 type Props = {
   selectedMonth: Date;
@@ -61,36 +62,13 @@ export default function WorkSummary({
       // 총 근무시간(분 단위 합산)
       let totalMinutes = 0;
       logs?.forEach((log: any) => {
-        // work_type이 없는 경우 기본값으로 'work' 처리
         const workType = log.work_type || "work";
-
-        // 휴무인 경우 시간 계산하지 않음
-        if (workType === "day_off" || !log.clock_in || !log.clock_out) {
-          return;
-        }
-
-        // 시간 문자열을 더 안전하게 파싱
-        const clockInStr = log.clock_in.includes(":")
-          ? log.clock_in
-          : log.clock_in + ":00";
-        const clockOutStr = log.clock_out.includes(":")
-          ? log.clock_out
-          : log.clock_out + ":00";
-
-        // 오늘 날짜를 기준으로 시간 생성 (날짜 부분은 동일하게)
-        const baseDate = "2024-01-01";
-        const start = dayjs(`${baseDate} ${clockInStr}`);
-        let end = dayjs(`${baseDate} ${clockOutStr}`);
-
-        if (end.isBefore(start)) {
-          end = end.add(1, "day");
-        }
-        if (start.isValid() && end.isValid()) {
-          const minutes = end.diff(start, "minute");
-          totalMinutes += minutes;
-        } else {
-          console.error("Invalid time format:", log.clock_in, log.clock_out);
-        }
+        const minutes = calculateWorkMinutes(
+          log.clock_in,
+          log.clock_out,
+          workType
+        );
+        totalMinutes += minutes;
       });
 
       const totalHours = totalMinutes > 0 ? totalMinutes / 60 : 0;

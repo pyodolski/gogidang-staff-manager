@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "../lib/supabase/client";
 import dayjs from "dayjs";
+import { calculateWorkHours } from "../lib/timeUtils";
 
 type Employee = {
   id: string;
@@ -140,19 +141,17 @@ export default function WorkLogModal({
     }
   };
 
-  const calculateWorkHours = () => {
+  const getWorkHoursDisplay = () => {
     if (workType === "day_off") {
       return "휴무";
     }
 
-    const start = dayjs(`2024-01-01 ${clockIn}:00`);
-    const end = dayjs(`2024-01-01 ${clockOut}:00`);
-
-    if (start.isValid() && end.isValid() && end.isAfter(start)) {
-      const minutes = end.diff(start, "minute");
-      return (minutes / 60).toFixed(1) + "시간";
-    }
-    return "0.0시간";
+    const hours = calculateWorkHours(
+      clockIn + ":00",
+      clockOut + ":00",
+      workType
+    );
+    return hours.toFixed(1) + "시간";
   };
 
   return (
@@ -280,7 +279,7 @@ export default function WorkLogModal({
             <div className="text-sm text-gray-600">
               {workType === "work" ? (
                 <>
-                  예상 근무시간: <strong>{calculateWorkHours()}</strong>
+                  예상 근무시간: <strong>{getWorkHoursDisplay()}</strong>
                 </>
               ) : (
                 <>
