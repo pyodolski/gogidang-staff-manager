@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import dayjs from "dayjs";
+import { calculateWorkHours, isNightShift } from "../lib/timeUtils";
 
 type Employee = {
   id: string;

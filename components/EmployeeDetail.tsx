@@ -5,6 +5,7 @@ import PayrollSlip from "./PayrollSlip";
 import DeductionModal from "./DeductionModal";
 import WorkLogModal from "./WorkLogModal";
 import dayjs from "dayjs";
+import { calculateWorkHours, isNightShift } from "../lib/timeUtils";
 
 type Employee = {
   id: string;
@@ -88,29 +89,6 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
     setWorkLogs(logs || []);
     setDeductions(deductionData || []);
     setLoading(false);
-  };
-
-  const calculateWorkHours = (
-    clockIn: string | null,
-    clockOut: string | null,
-    workType?: string
-  ) => {
-    if (workType === "day_off" || !clockIn || !clockOut) {
-      return 0;
-    }
-
-    const clockInStr = clockIn.includes(":") ? clockIn : clockIn + ":00";
-    const clockOutStr = clockOut.includes(":") ? clockOut : clockOut + ":00";
-
-    const baseDate = "2024-01-01";
-    const start = dayjs(`${baseDate} ${clockInStr}`);
-    const end = dayjs(`${baseDate} ${clockOutStr}`);
-
-    if (start.isValid() && end.isValid()) {
-      const minutes = end.diff(start, "minute");
-      return minutes > 0 ? minutes / 60 : 0;
-    }
-    return 0;
   };
 
   const handleWorkLogClick = (log: WorkLog) => {
@@ -381,6 +359,7 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                 );
                 const dailyPay = Math.floor(hours * employee.hourly_wage);
                 const isOffDay = log.work_type === "day_off";
+                const isNight = isNightShift(log.clock_in, log.clock_out);
 
                 return (
                   <div
@@ -424,8 +403,16 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                             "휴무일"
                           ) : (
                             <>
-                              {log.clock_in} ~ {log.clock_out} (
-                              {hours.toFixed(1)}시간)
+                              {log.clock_in} ~ {log.clock_out}
+                              {isNight && (
+                                <span className="text-xs text-purple-600 ml-1">
+                                  (야간)
+                                </span>
+                              )}
+                              <br />
+                              <span className="text-xs text-gray-500">
+                                ({hours.toFixed(1)}시간)
+                              </span>
                             </>
                           )}
                         </div>
