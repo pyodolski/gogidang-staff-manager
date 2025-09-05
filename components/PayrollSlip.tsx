@@ -102,22 +102,14 @@ export default function PayrollSlip({
   );
   const grossPay = Math.floor(totalHours * employee.hourly_wage);
 
-  // 기본 세금 (소수점 버림)
-  const incomeTax = Math.floor(grossPay * 0.03);
-  const localTax = Math.floor(grossPay * 0.003);
-
-  // 추가 공제 (소수점 버림)
-  const additionalDeductions = deductions.reduce((sum, deduction) => {
+  // 모든 공제 항목 계산 (소수점 버림)
+  const totalDeductions = deductions.reduce((sum, deduction) => {
     if (deduction.type === "fixed") {
       return sum + deduction.amount;
     } else {
       return sum + Math.floor((grossPay * deduction.amount) / 100);
     }
   }, 0);
-
-  const totalDeductions = Math.floor(
-    incomeTax + localTax + additionalDeductions
-  );
   const netPay = Math.floor(grossPay - totalDeductions);
 
   const monthName = dayjs(selectedMonth + "-01").format("YYYY년 MM월");
@@ -275,34 +267,32 @@ export default function PayrollSlip({
             <div>
               <h3 className="text-lg font-semibold mb-3">공제 내역</h3>
               <div className="border border-gray-300">
-                <div className="flex justify-between p-3 border-b border-gray-300">
-                  <span>소득세 (3%)</span>
-                  <span>{incomeTax.toLocaleString()}원</span>
-                </div>
-                <div className="flex justify-between p-3 border-b border-gray-300">
-                  <span>지방세 (0.3%)</span>
-                  <span>{localTax.toLocaleString()}원</span>
-                </div>
-                {deductions.map((deduction) => {
-                  const amount =
-                    deduction.type === "fixed"
-                      ? deduction.amount
-                      : Math.floor((grossPay * deduction.amount) / 100);
+                {deductions.length === 0 ? (
+                  <div className="p-3 text-gray-500 text-center">
+                    공제 항목이 없습니다
+                  </div>
+                ) : (
+                  deductions.map((deduction) => {
+                    const amount =
+                      deduction.type === "fixed"
+                        ? deduction.amount
+                        : Math.floor((grossPay * deduction.amount) / 100);
 
-                  return (
-                    <div
-                      key={deduction.id}
-                      className="flex justify-between p-3 border-b border-gray-300"
-                    >
-                      <span>
-                        {deduction.name}
-                        {deduction.type === "percentage" &&
-                          ` (${deduction.amount}%)`}
-                      </span>
-                      <span>{amount.toLocaleString()}원</span>
-                    </div>
-                  );
-                })}
+                    return (
+                      <div
+                        key={deduction.id}
+                        className="flex justify-between p-3 border-b border-gray-300"
+                      >
+                        <span>
+                          {deduction.name}
+                          {deduction.type === "percentage" &&
+                            ` (${deduction.amount}%)`}
+                        </span>
+                        <span>{amount.toLocaleString()}원</span>
+                      </div>
+                    );
+                  })
+                )}
                 <div className="flex justify-between p-3 bg-red-50 font-semibold">
                   <span>총 공제액</span>
                   <span>{totalDeductions.toLocaleString()}원</span>

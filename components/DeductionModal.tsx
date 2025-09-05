@@ -41,12 +41,12 @@ export default function DeductionModal({
 
   // 미리 정의된 공제 항목들
   const presetDeductions = [
+    { name: "소득세", type: "percentage" as const, amount: 3 },
+    { name: "지방세", type: "percentage" as const, amount: 0.3 },
     { name: "국민연금", type: "percentage" as const, amount: 4.5 },
     { name: "건강보험", type: "percentage" as const, amount: 3.545 },
     { name: "장기요양보험", type: "percentage" as const, amount: 0.4091 },
     { name: "고용보험", type: "percentage" as const, amount: 0.9 },
-    { name: "소득세", type: "percentage" as const, amount: 3.3 },
-    { name: "지방소득세", type: "percentage" as const, amount: 0.33 },
     { name: "식대", type: "fixed" as const, amount: 100000 },
     { name: "교통비", type: "fixed" as const, amount: 50000 },
   ];
