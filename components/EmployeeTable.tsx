@@ -80,7 +80,7 @@ export default function EmployeeManagement() {
     }));
   };
 
-  // 월별 근무 시간 계산
+  // ✅ 월별 근무 시간/일수 계산 (야간근무 보정 포함)
   const calculateMonthlyStats = async (employeeId: string, month: string) => {
     const startDate = dayjs(month + "-01")
       .startOf("month")
@@ -114,7 +114,7 @@ export default function EmployeeManagement() {
       const start = dayjs(`${baseDate} ${clockInStr}`);
       let end = dayjs(`${baseDate} ${clockOutStr}`);
 
-      // 야간 근무 보정
+      // ✅ 야간 근무 보정 (종료시간이 시작시간보다 빠른 경우 → 다음날로 계산)
       if (end.isBefore(start)) {
         end = end.add(1, "day");
       }
