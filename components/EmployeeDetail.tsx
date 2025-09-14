@@ -48,6 +48,7 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
   const [showPayrollSlip, setShowPayrollSlip] = useState(false);
   const [showDeductionModal, setShowDeductionModal] = useState(false);
   const [showWorkLogModal, setShowWorkLogModal] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [selectedWorkLog, setSelectedWorkLog] = useState<WorkLog | null>(null);
   const [showAddWorkLogModal, setShowAddWorkLogModal] = useState(false);
   const [showAddBonusModal, setShowAddBonusModal] = useState(false);
@@ -160,6 +161,133 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
     setShowEditDeductionModal(true);
   };
 
+  // 엑셀 다운로드 함수
+  const downloadExcelReport = async () => {
+    setIsDownloading(true);
+
+    try {
+      // 활성화된 공제 항목들만 필터링
+      const activeDeductions = deductions.filter((d) => d.is_active);
+
+      // 공제 항목별 계산
+      let totalDeductionAmount = 0;
+      const deductionBreakdown: { [key: string]: number } = {};
+
+      if (activeDeductions.length > 0) {
+        activeDeductions.forEach((deduction) => {
+          const amount =
+            deduction.type === "fixed"
+              ? deduction.amount
+              : Math.floor((grossPay * deduction.amount) / 100);
+
+          deductionBreakdown[deduction.name] = amount;
+          totalDeductionAmount += amount;
+        });
+      }
+
+      // CSV 데이터 생성
+      const monthName = dayjs(selectedMonth + "-01").format("YYYY년 MM월");
+      const csvData = [];
+
+      // 헤더 정보
+      csvData.push([`${employee.full_name} - ${monthName} 급여 보고서`]);
+      csvData.push([]);
+      csvData.push(["기본 정보"]);
+      csvData.push(["직원명", employee.full_name]);
+      csvData.push(["이메일", employee.email]);
+      csvData.push(["시급", `${employee.hourly_wage.toLocaleString()}원`]);
+      csvData.push(["보고서 생성일", dayjs().format("YYYY-MM-DD HH:mm:ss")]);
+      csvData.push([]);
+
+      // 급여 요약
+      csvData.push(["급여 요약"]);
+      csvData.push(["총 근무시간", `${totalHours.toFixed(1)}시간`]);
+      csvData.push(["총 급여", `${grossPay.toLocaleString()}원`]);
+      csvData.push(["총 공제", `${totalDeductionAmount.toLocaleString()}원`]);
+      csvData.push(["실지급액", `${netPay.toLocaleString()}원`]);
+      csvData.push([]);
+
+      // 공제 내역
+      if (Object.keys(deductionBreakdown).length > 0) {
+        csvData.push(["공제 내역"]);
+        Object.entries(deductionBreakdown).forEach(([name, amount]) => {
+          csvData.push([name, `${amount.toLocaleString()}원`]);
+        });
+        csvData.push([]);
+      }
+
+      // 근무 기록
+      csvData.push(["근무 기록"]);
+      csvData.push([
+        "날짜",
+        "출근시간",
+        "퇴근시간",
+        "근무시간",
+        "상태",
+        "일급",
+        "비고",
+      ]);
+
+      workLogs.forEach((log) => {
+        const hours = calculateWorkHours(
+          log.clock_in,
+          log.clock_out,
+          log.work_type
+        );
+        const dailyPay = Math.floor(hours * employee.hourly_wage);
+        const isOffDay = log.work_type === "day_off";
+        const isNight = isNightShift(log.clock_in, log.clock_out);
+
+        let remarks = "";
+        if (isOffDay) remarks = "휴무";
+        else if (isNight) remarks = "야간근무";
+
+        csvData.push([
+          dayjs(log.date).format("YYYY-MM-DD (ddd)"),
+          isOffDay ? "-" : log.clock_in || "-",
+          isOffDay ? "-" : log.clock_out || "-",
+          isOffDay ? "-" : `${hours.toFixed(1)}시간`,
+          log.status === "approved"
+            ? "승인"
+            : log.status === "rejected"
+            ? "반려"
+            : "대기",
+          isOffDay ? "-" : `${dailyPay.toLocaleString()}원`,
+          remarks,
+        ]);
+      });
+
+      // CSV 문자열 생성
+      const csvContent = csvData
+        .map((row) => row.map((cell) => `"${cell}"`).join(","))
+        .join("\n");
+
+      // BOM 추가 (한글 깨짐 방지)
+      const BOM = "\uFEFF";
+      const blob = new Blob([BOM + csvContent], {
+        type: "text/csv;charset=utf-8;",
+      });
+
+      // 다운로드
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `${employee.full_name}_${monthName}_급여보고서.csv`
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Excel download error:", error);
+      alert("엑셀 다운로드 중 오류가 발생했습니다.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   // 급여 계산
   const approvedLogs = workLogs.filter((log) => log.status === "approved");
   const totalHours = approvedLogs.reduce(
@@ -255,18 +383,91 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                 className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setShowPayrollSlip(true)}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex items-center justify-center gap-2"
               >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
                 급여명세서
               </button>
               <button
                 onClick={() => setShowDeductionModal(true)}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center justify-center gap-2"
               >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
+                  />
+                </svg>
                 공제관리
+              </button>
+              <button
+                onClick={downloadExcelReport}
+                disabled={isDownloading}
+                className="col-span-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDownloading ? (
+                  <>
+                    <svg
+                      className="w-4 h-4 animate-spin"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    다운로드 중...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    엑셀 다운로드
+                  </>
+                )}
               </button>
             </div>
           </div>
