@@ -4,6 +4,7 @@ import { createClient } from "../lib/supabase/client";
 import dayjs from "dayjs";
 import EmployeeDetail from "./EmployeeDetail";
 import PayrollSlip from "./PayrollSlip";
+import { calculateWorkHours } from "../lib/timeUtils";
 
 type Employee = {
   id: string;
@@ -103,30 +104,21 @@ export default function EmployeeManagement() {
       .gte("date", startDate)
       .lte("date", endDate);
 
-    let totalMinutes = 0;
+    let totalHours = 0;
     logs?.forEach((log: any) => {
-      // 휴무인 경우 시간 계산하지 않음 (work_type이 없는 경우 기본적으로 근무로 처리)
+      // 휴무인 경우 시간 계산하지 않음
       if (log.work_type === "day_off" || !log.clock_in || !log.clock_out) {
         return;
       }
 
-      const clockInStr = log.clock_in.includes(":")
-        ? log.clock_in
-        : log.clock_in + ":00";
-      const clockOutStr = log.clock_out.includes(":")
-        ? log.clock_out
-        : log.clock_out + ":00";
-
-      const baseDate = "2024-01-01";
-      const start = dayjs(`${baseDate} ${clockInStr}`);
-      const end = dayjs(`${baseDate} ${clockOutStr}`);
-
-      if (start.isValid() && end.isValid()) {
-        totalMinutes += end.diff(start, "minute");
-      }
+      // timeUtils의 공통 함수 사용 (야간 근무 처리 포함)
+      const hours = calculateWorkHours(
+        log.clock_in,
+        log.clock_out,
+        log.work_type
+      );
+      totalHours += hours;
     });
-
-    const totalHours = totalMinutes > 0 ? totalMinutes / 60 : 0;
     return {
       totalHours,
       workDays: logs?.length || 0,
