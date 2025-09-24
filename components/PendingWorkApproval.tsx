@@ -98,12 +98,11 @@ export default function PendingWorkApproval() {
     const supabase = createClient();
     setProcessingIds((prev) => new Set(prev).add(selectedLogForReject.id));
 
+    // 일단 status만 업데이트 (rejection_reason 컬럼 추가 후 활성화 예정)
+
     const { error } = await supabase
       .from("work_logs")
-      .update({
-        status: "rejected",
-        rejection_reason: rejectionReason.trim(),
-      })
+      .update({ status: "rejected" })
       .eq("id", selectedLogForReject.id);
 
     if (error) {

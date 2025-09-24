@@ -5,12 +5,15 @@ import { useRouter } from "next/navigation";
 import AuthButton from "../../components/AuthButton";
 import PendingWorkApproval from "../../components/PendingWorkApproval";
 import EmployeeManagement from "../../components/EmployeeManagement";
+import AnnouncementBanner from "../../components/AnnouncementBanner";
+import AnnouncementManager from "../../components/AnnouncementManager";
 
 export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"approval" | "employees">(
     "approval"
   );
+  const [showAnnouncementManager, setShowAnnouncementManager] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -104,26 +107,11 @@ export default function AdminPage() {
           <AuthButton />
         </div>
 
-        {/* 관리자 환영 카드 */}
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 mb-6 text-white">
-          <div className="flex items-center gap-4">
-            <div className="bg-white/20 rounded-full p-3">
-              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
-                <path
-                  d="M10 17l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"
-                  fill="white"
-                />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-xl font-bold mb-1">환영합니다, 관리자님!</h2>
-              <p className="text-purple-100">
-                직원들의 근무 승인과 급여 관리를 효율적으로 처리하세요
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* 공지사항 배너 */}
+        <AnnouncementBanner
+          isAdmin={true}
+          onManageClick={() => setShowAnnouncementManager(true)}
+        />
 
         {/* 탭 네비게이션 - 데스크톱 */}
         <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
@@ -178,6 +166,13 @@ export default function AdminPage() {
           {activeTab === "approval" && <PendingWorkApproval />}
           {activeTab === "employees" && <EmployeeManagement />}
         </div>
+
+        {/* 공지사항 관리 모달 */}
+        {showAnnouncementManager && (
+          <AnnouncementManager
+            onClose={() => setShowAnnouncementManager(false)}
+          />
+        )}
 
         {/* 모바일 전용 스타일 */}
         <style jsx>{`

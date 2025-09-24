@@ -4,6 +4,7 @@ import WorkRegisterModal from "../../components/WorkRegisterModal";
 import WorkCalendar from "../../components/WorkCalendar";
 import PendingWorkTable from "../../components/PendingWorkTable";
 import AuthButton from "../../components/AuthButton";
+import AnnouncementBanner from "../../components/AnnouncementBanner";
 
 import { useState } from "react";
 
@@ -59,6 +60,9 @@ export default function Dashboard() {
           </div>
           <AuthButton />
         </div>
+
+        {/* 공지사항 배너 */}
+        <AnnouncementBanner />
 
         {/* 급여 요약과 빠른 액션 (항상 표시) */}
         <div className="space-y-4 mb-6">
