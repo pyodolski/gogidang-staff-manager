@@ -24,6 +24,10 @@ export default function PendingWorkApproval() {
   const [pendingLogs, setPendingLogs] = useState<WorkLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [selectedLogForReject, setSelectedLogForReject] =
+    useState<WorkLog | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const fetchPendingLogs = async () => {
     const supabase = createClient();
@@ -55,16 +59,13 @@ export default function PendingWorkApproval() {
     fetchPendingLogs();
   }, []);
 
-  const handleApproval = async (
-    logId: number,
-    newStatus: "approved" | "rejected"
-  ) => {
+  const handleApproval = async (logId: number) => {
     const supabase = createClient();
     setProcessingIds((prev) => new Set(prev).add(logId));
 
     const { error } = await supabase
       .from("work_logs")
-      .update({ status: newStatus })
+      .update({ status: "approved" })
       .eq("id", logId);
 
     if (error) {
@@ -78,6 +79,49 @@ export default function PendingWorkApproval() {
     setProcessingIds((prev) => {
       const newSet = new Set(prev);
       newSet.delete(logId);
+      return newSet;
+    });
+  };
+
+  const handleRejectClick = (log: WorkLog) => {
+    setSelectedLogForReject(log);
+    setRejectionReason("");
+    setShowRejectModal(true);
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!selectedLogForReject || !rejectionReason.trim()) {
+      alert("거절 사유를 입력해주세요.");
+      return;
+    }
+
+    const supabase = createClient();
+    setProcessingIds((prev) => new Set(prev).add(selectedLogForReject.id));
+
+    const { error } = await supabase
+      .from("work_logs")
+      .update({
+        status: "rejected",
+        rejection_reason: rejectionReason.trim(),
+      })
+      .eq("id", selectedLogForReject.id);
+
+    if (error) {
+      console.error("Error updating status:", error);
+      alert("상태 변경에 실패했습니다: " + error.message);
+    } else {
+      // 성공적으로 업데이트되면 목록에서 제거
+      setPendingLogs((prev) =>
+        prev.filter((log) => log.id !== selectedLogForReject.id)
+      );
+      setShowRejectModal(false);
+      setSelectedLogForReject(null);
+      setRejectionReason("");
+    }
+
+    setProcessingIds((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(selectedLogForReject.id);
       return newSet;
     });
   };
@@ -344,7 +388,7 @@ export default function PendingWorkApproval() {
               {/* 액션 버튼 */}
               <div className="flex gap-3 pt-3 border-t border-yellow-200">
                 <button
-                  onClick={() => handleApproval(log.id, "approved")}
+                  onClick={() => handleApproval(log.id)}
                   disabled={processingIds.has(log.id)}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
@@ -373,7 +417,7 @@ export default function PendingWorkApproval() {
                   )}
                 </button>
                 <button
-                  onClick={() => handleApproval(log.id, "rejected")}
+                  onClick={() => handleRejectClick(log)}
                   disabled={processingIds.has(log.id)}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
@@ -406,6 +450,87 @@ export default function PendingWorkApproval() {
           );
         })}
       </div>
+
+      {/* 거절 사유 입력 모달 */}
+      {showRejectModal && selectedLogForReject && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-red-100 rounded-full p-2">
+                <svg
+                  className="w-6 h-6 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  근무 거절
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {selectedLogForReject.profiles?.full_name} -{" "}
+                  {dayjs(selectedLogForReject.date).format("MM/DD")}
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                거절 사유 <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="거절 사유를 입력해주세요. (예: 출근 시간이 잘못되었습니다, 휴무일과 겹칩니다 등)"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                rows={4}
+                maxLength={500}
+              />
+              <div className="text-xs text-gray-500 mt-1">
+                {rejectionReason.length}/500자
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setSelectedLogForReject(null);
+                  setRejectionReason("");
+                }}
+                className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleRejectConfirm}
+                disabled={
+                  !rejectionReason.trim() ||
+                  processingIds.has(selectedLogForReject.id)
+                }
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {processingIds.has(selectedLogForReject.id) ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block mr-2"></div>
+                    처리중...
+                  </>
+                ) : (
+                  "거절하기"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -338,6 +338,29 @@ export default function PendingWorkTable() {
                   </span>
                 </div>
 
+                {/* 거절 사유 표시 */}
+                {log.status === "rejected" && log.rejection_reason && (
+                  <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <svg
+                        className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                      </svg>
+                      <div>
+                        <div className="text-sm font-medium text-red-800 mb-1">
+                          거절 사유
+                        </div>
+                        <div className="text-sm text-red-700">
+                          {log.rejection_reason}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-between items-center">
                   <div className="text-sm text-gray-600">
                     등록일: {dayjs(log.created_at).format("MM-DD HH:mm")}
