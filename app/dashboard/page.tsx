@@ -14,6 +14,8 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<
     "summary" | "calendar" | "history"
   >("summary");
+  const [announcementRefreshTrigger, setAnnouncementRefreshTrigger] =
+    useState(0);
 
   const tabs = [
     {
@@ -62,7 +64,7 @@ export default function Dashboard() {
         </div>
 
         {/* 공지사항 배너 */}
-        <AnnouncementBanner />
+        <AnnouncementBanner refreshTrigger={announcementRefreshTrigger} />
 
         {/* 급여 요약과 빠른 액션 (항상 표시) */}
         <div className="space-y-4 mb-6">

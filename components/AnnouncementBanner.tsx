@@ -17,11 +17,13 @@ type Announcement = {
 type Props = {
   isAdmin?: boolean;
   onManageClick?: () => void;
+  refreshTrigger?: number; // 새로고침 트리거용 prop
 };
 
 export default function AnnouncementBanner({
   isAdmin = false,
   onManageClick,
+  refreshTrigger = 0,
 }: Props) {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -71,7 +73,7 @@ export default function AnnouncementBanner({
 
   useEffect(() => {
     fetchAnnouncements();
-  }, []);
+  }, [refreshTrigger]); // refreshTrigger가 변경될 때마다 새로고침
 
   // 자동 슬라이드 (긴급/중요 공지가 있을 때만)
   useEffect(() => {
@@ -147,12 +149,42 @@ export default function AnnouncementBanner({
                 </p>
               </div>
             </div>
+            {/* 데스크톱: 공지 관리 버튼 */}
             {onManageClick && (
               <button
                 onClick={onManageClick}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors"
+                className="hidden md:flex px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors"
               >
                 공지 관리
+              </button>
+            )}
+
+            {/* 모바일: 공지 관리 아이콘 */}
+            {onManageClick && (
+              <button
+                onClick={onManageClick}
+                className="md:hidden p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                title="공지 관리"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
               </button>
             )}
           </div>
@@ -219,12 +251,42 @@ export default function AnnouncementBanner({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* 데스크톱: 공지 관리 버튼 표시 */}
             {isAdmin && onManageClick && (
               <button
                 onClick={onManageClick}
-                className="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors"
+                className="hidden md:flex px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors"
               >
                 공지 관리
+              </button>
+            )}
+
+            {/* 모바일: 공지 관리 아이콘만 표시 */}
+            {isAdmin && onManageClick && (
+              <button
+                onClick={onManageClick}
+                className="md:hidden p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                title="공지 관리"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
               </button>
             )}
 
@@ -305,7 +367,6 @@ export default function AnnouncementBanner({
 
         <div className="flex items-center justify-between text-sm text-white/70">
           <span>
-            작성자: {currentAnnouncement.profiles?.full_name} |
             {dayjs(currentAnnouncement.created_at).format("MM-DD HH:mm")}
           </span>
 

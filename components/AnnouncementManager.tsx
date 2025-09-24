@@ -19,9 +19,13 @@ type Announcement = {
 
 type Props = {
   onClose: () => void;
+  onAnnouncementChange?: () => void; // 공지사항 변경 시 호출될 콜백
 };
 
-export default function AnnouncementManager({ onClose }: Props) {
+export default function AnnouncementManager({
+  onClose,
+  onAnnouncementChange,
+}: Props) {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -65,6 +69,7 @@ export default function AnnouncementManager({ onClose }: Props) {
       alert("상태 변경에 실패했습니다: " + error.message);
     } else {
       fetchAnnouncements();
+      onAnnouncementChange?.(); // 변경사항 알림
     }
   };
 
@@ -82,6 +87,7 @@ export default function AnnouncementManager({ onClose }: Props) {
       alert("삭제에 실패했습니다: " + error.message);
     } else {
       fetchAnnouncements();
+      onAnnouncementChange?.(); // 변경사항 알림
     }
   };
 
@@ -288,7 +294,7 @@ export default function AnnouncementManager({ onClose }: Props) {
                     </div>
                   </div>
                   <div className="text-xs text-gray-500">
-                    작성자: {announcement.profiles?.full_name} | 작성일:{" "}
+                    작성일:{" "}
                     {dayjs(announcement.created_at).format("YYYY-MM-DD HH:mm")}
                   </div>
                 </div>
@@ -310,6 +316,7 @@ export default function AnnouncementManager({ onClose }: Props) {
             fetchAnnouncements();
             setShowCreateModal(false);
             setEditingAnnouncement(null);
+            onAnnouncementChange?.(); // 변경사항 알림
           }}
         />
       )}

@@ -14,6 +14,8 @@ export default function AdminPage() {
     "approval"
   );
   const [showAnnouncementManager, setShowAnnouncementManager] = useState(false);
+  const [announcementRefreshTrigger, setAnnouncementRefreshTrigger] =
+    useState(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -111,6 +113,7 @@ export default function AdminPage() {
         <AnnouncementBanner
           isAdmin={true}
           onManageClick={() => setShowAnnouncementManager(true)}
+          refreshTrigger={announcementRefreshTrigger}
         />
 
         {/* 탭 네비게이션 - 데스크톱 */}
@@ -171,6 +174,10 @@ export default function AdminPage() {
         {showAnnouncementManager && (
           <AnnouncementManager
             onClose={() => setShowAnnouncementManager(false)}
+            onAnnouncementChange={() => {
+              // 공지사항 변경 시 새로고침 트리거
+              setAnnouncementRefreshTrigger((prev) => prev + 1);
+            }}
           />
         )}
 
