@@ -126,12 +126,12 @@ export default function AnnouncementBanner({
       return (
         <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 mb-6 text-white">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="bg-white/20 rounded-full p-3">
+            <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+              <div className="bg-white/20 rounded-full p-2 md:p-3 flex-shrink-0">
                 <svg
                   fill="currentColor"
                   viewBox="0 0 24 24"
-                  className="w-8 h-8"
+                  className="w-6 h-6 md:w-8 md:h-8"
                 >
                   <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"></path>
                   <path
@@ -140,11 +140,11 @@ export default function AnnouncementBanner({
                   ></path>
                 </svg>
               </div>
-              <div>
-                <h2 className="text-xl font-bold mb-1">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-base md:text-xl font-bold mb-1 leading-tight">
                   환영합니다, 관리자님!
                 </h2>
-                <p className="text-purple-100">
+                <p className="text-purple-100 text-sm md:text-base leading-relaxed">
                   직원들의 근무 승인과 급여 관리를 효율적으로 처리하세요
                 </p>
               </div>
@@ -153,7 +153,7 @@ export default function AnnouncementBanner({
             {onManageClick && (
               <button
                 onClick={onManageClick}
-                className="hidden md:flex px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors"
+                className="hidden md:flex px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
               >
                 공지 관리
               </button>
@@ -163,11 +163,11 @@ export default function AnnouncementBanner({
             {onManageClick && (
               <button
                 onClick={onManageClick}
-                className="md:hidden p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                className="md:hidden p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors flex-shrink-0"
                 title="공지 관리"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -194,16 +194,22 @@ export default function AnnouncementBanner({
 
     // 직원용 기본 메시지
     return (
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 mb-6 text-white">
-        <div className="flex items-center gap-4">
-          <div className="bg-white/20 rounded-full p-3">
-            <svg fill="currentColor" viewBox="0 0 24 24" className="w-8 h-8">
+      <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 md:p-6 mb-6 text-white">
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="bg-white/20 rounded-full p-2 md:p-3 flex-shrink-0">
+            <svg
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              className="w-6 h-6 md:w-8 md:h-8"
+            >
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
             </svg>
           </div>
-          <div>
-            <h2 className="text-xl font-bold mb-1">안녕하세요!</h2>
-            <p className="text-blue-100">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-base md:text-xl font-bold mb-1 leading-tight">
+              안녕하세요!
+            </h2>
+            <p className="text-blue-100 text-sm md:text-base leading-relaxed">
               오늘도 좋은 하루 되세요. 근무 등록을 잊지 마세요!
             </p>
           </div>
@@ -217,7 +223,7 @@ export default function AnnouncementBanner({
 
   return (
     <div
-      className={`bg-gradient-to-r ${config.bg} rounded-xl p-6 mb-6 text-white relative overflow-hidden`}
+      className={`bg-gradient-to-r ${config.bg} rounded-xl p-4 md:p-6 mb-6 text-white relative overflow-hidden`}
     >
       {/* 배경 패턴 */}
       <div className="absolute inset-0 opacity-10">
@@ -230,27 +236,29 @@ export default function AnnouncementBanner({
       </div>
 
       <div className="relative">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-white/20 rounded-full p-3">
-              <span className="text-2xl">{config.icon}</span>
+        <div className="flex items-start justify-between mb-3 md:mb-4">
+          <div className="flex items-start gap-2 md:gap-3 flex-1 min-w-0">
+            <div className="bg-white/20 rounded-full p-2 md:p-3 flex-shrink-0">
+              <span className="text-lg md:text-2xl">{config.icon}</span>
             </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm font-medium bg-white/20 px-2 py-1 rounded-full">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1 md:gap-2 mb-1 flex-wrap">
+                <span className="text-xs md:text-sm font-medium bg-white/20 px-2 py-1 rounded-full whitespace-nowrap">
                   {config.text}
                 </span>
                 {announcements.length > 1 && (
-                  <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                  <span className="text-xs bg-white/20 px-2 py-1 rounded-full whitespace-nowrap">
                     {currentIndex + 1} / {announcements.length}
                   </span>
                 )}
               </div>
-              <h2 className="text-xl font-bold">{currentAnnouncement.title}</h2>
+              <h2 className="text-base md:text-xl font-bold leading-tight break-words">
+                {currentAnnouncement.title}
+              </h2>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
             {/* 데스크톱: 공지 관리 버튼 표시 */}
             {isAdmin && onManageClick && (
               <button
@@ -265,11 +273,11 @@ export default function AnnouncementBanner({
             {isAdmin && onManageClick && (
               <button
                 onClick={onManageClick}
-                className="md:hidden p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                className="md:hidden p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
                 title="공지 관리"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -299,10 +307,10 @@ export default function AnnouncementBanner({
                         (prev - 1 + announcements.length) % announcements.length
                     )
                   }
-                  className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                  className="p-1.5 md:p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
                 >
                   <svg
-                    className="w-4 h-4"
+                    className="w-3 h-3 md:w-4 md:h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -319,10 +327,10 @@ export default function AnnouncementBanner({
                   onClick={() =>
                     setCurrentIndex((prev) => (prev + 1) % announcements.length)
                   }
-                  className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                  className="p-1.5 md:p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
                 >
                   <svg
-                    className="w-4 h-4"
+                    className="w-3 h-3 md:w-4 md:h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -340,15 +348,15 @@ export default function AnnouncementBanner({
           </div>
         </div>
 
-        <div className="mb-3">
+        <div className="mb-2 md:mb-3">
           <p
-            className={`text-white/90 ${
+            className={`text-white/90 text-sm md:text-base leading-relaxed ${
               expandedId === currentAnnouncement.id ? "" : "line-clamp-2"
             }`}
           >
             {currentAnnouncement.content}
           </p>
-          {currentAnnouncement.content.length > 100 && (
+          {currentAnnouncement.content.length > 80 && (
             <button
               onClick={() => {
                 setExpandedId(
@@ -358,14 +366,14 @@ export default function AnnouncementBanner({
                 );
                 markAsRead(currentAnnouncement.id);
               }}
-              className="text-sm text-white/80 hover:text-white underline mt-1"
+              className="text-xs md:text-sm text-white/80 hover:text-white underline mt-1"
             >
               {expandedId === currentAnnouncement.id ? "접기" : "더보기"}
             </button>
           )}
         </div>
 
-        <div className="flex items-center justify-between text-sm text-white/70">
+        <div className="flex items-center justify-between text-xs md:text-sm text-white/70">
           <span>
             {dayjs(currentAnnouncement.created_at).format("MM-DD HH:mm")}
           </span>
@@ -376,7 +384,7 @@ export default function AnnouncementBanner({
                 <button
                   key={index}
                   onClick={() => setCurrentIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-colors ${
+                  className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-colors ${
                     index === currentIndex ? "bg-white" : "bg-white/40"
                   }`}
                 />
