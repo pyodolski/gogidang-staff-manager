@@ -204,11 +204,48 @@ export default function AdminDiary() {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       {/* 헤더 */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-indigo-100 rounded-full p-2">
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex justify-between items-start">
+          <div className="flex items-center gap-3">
+            <div className="bg-indigo-100 rounded-full p-2">
+              <svg
+                className="w-6 h-6 text-indigo-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg md:text-xl font-bold text-gray-800">
+                관리자 다이어리
+              </h2>
+              <p className="text-xs md:text-sm text-gray-600 hidden sm:block">
+                날짜별 메모와 기록을 관리하세요
+              </p>
+            </div>
+          </div>
+          {/* 데스크톱: 텍스트 버튼 */}
+          <button
+            onClick={() => handleDateSelect(dayjs().format("YYYY-MM-DD"))}
+            className="hidden md:flex px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap"
+          >
+            오늘 작성
+          </button>
+          {/* 모바일: 아이콘 버튼 */}
+          <button
+            onClick={() => handleDateSelect(dayjs().format("YYYY-MM-DD"))}
+            className="md:hidden p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            title="오늘 작성"
+          >
             <svg
-              className="w-6 h-6 text-indigo-600"
+              className="w-5 h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -217,47 +254,39 @@ export default function AdminDiary() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                d="M12 4v16m8-8H4"
               />
             </svg>
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-800">관리자 다이어리</h2>
-            <p className="text-sm text-gray-600">
-              날짜별 메모와 기록을 관리하세요
-            </p>
-          </div>
+          </button>
         </div>
-        <button
-          onClick={() => handleDateSelect(dayjs().format("YYYY-MM-DD"))}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-        >
-          오늘 작성
-        </button>
       </div>
 
       {/* 월 선택 */}
-      <div className="flex items-center gap-2 mb-4">
-        <label className="text-sm font-medium text-gray-600">조회 월:</label>
-        <input
-          type="month"
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-        />
-        <span className="text-sm text-gray-500">
-          ({entries.length}개의 다이어리)
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 flex-1">
+          <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
+            조회 월:
+          </label>
+          <input
+            type="month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="flex-1 sm:flex-none border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          />
+        </div>
+        <span className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
+          {entries.length}개의 다이어리
         </span>
       </div>
 
       {/* 캘린더 */}
-      <div className="bg-gray-50 rounded-lg p-4 mb-6">
-        <div className="grid grid-cols-7 gap-2">
+      <div className="bg-gray-50 rounded-lg p-2 sm:p-4 mb-6">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2">
           {/* 요일 헤더 */}
           {["일", "월", "화", "수", "목", "금", "토"].map((day, index) => (
             <div
               key={day}
-              className={`text-center text-sm font-semibold py-2 ${
+              className={`text-center text-xs sm:text-sm font-semibold py-1 sm:py-2 ${
                 index === 0
                   ? "text-red-600"
                   : index === 6
@@ -283,16 +312,24 @@ export default function AdminDiary() {
                 onClick={() => handleDateSelect(date.format("YYYY-MM-DD"))}
                 disabled={!isCurrentMonth}
                 className={`
-                  relative aspect-square p-2 rounded-lg text-sm transition-all
+                  relative aspect-square p-1 sm:p-2 rounded-md sm:rounded-lg text-xs sm:text-sm transition-all touch-manipulation
                   ${!isCurrentMonth ? "text-gray-300 cursor-not-allowed" : ""}
-                  ${isCurrentMonth && !hasDiaryEntry ? "hover:bg-gray-200" : ""}
                   ${
-                    hasDiaryEntry
-                      ? "bg-indigo-100 hover:bg-indigo-200 font-semibold text-indigo-700"
+                    isCurrentMonth && !hasDiaryEntry
+                      ? "hover:bg-gray-200 active:bg-gray-300"
                       : ""
                   }
-                  ${isToday ? "ring-2 ring-indigo-500" : ""}
-                  ${isSelected ? "ring-2 ring-indigo-600 bg-indigo-200" : ""}
+                  ${
+                    hasDiaryEntry
+                      ? "bg-indigo-100 hover:bg-indigo-200 active:bg-indigo-300 font-semibold text-indigo-700"
+                      : ""
+                  }
+                  ${isToday ? "ring-1 sm:ring-2 ring-indigo-500" : ""}
+                  ${
+                    isSelected
+                      ? "ring-1 sm:ring-2 ring-indigo-600 bg-indigo-200"
+                      : ""
+                  }
                   ${index % 7 === 0 && isCurrentMonth ? "text-red-600" : ""}
                   ${index % 7 === 6 && isCurrentMonth ? "text-blue-600" : ""}
                 `}
@@ -308,7 +345,7 @@ export default function AdminDiary() {
                 <div className="flex flex-col items-center justify-center h-full">
                   <span>{date.format("D")}</span>
                   {hasDiaryEntry && (
-                    <div className="absolute bottom-1 w-1 h-1 bg-indigo-600 rounded-full"></div>
+                    <div className="absolute bottom-0.5 sm:bottom-1 w-1 h-1 bg-indigo-600 rounded-full"></div>
                   )}
                 </div>
               </button>
@@ -317,14 +354,14 @@ export default function AdminDiary() {
         </div>
 
         {/* 범례 */}
-        <div className="flex items-center justify-center gap-4 mt-4 text-xs text-gray-600">
+        <div className="flex items-center justify-center gap-3 sm:gap-4 mt-3 sm:mt-4 text-xs text-gray-600">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-indigo-100 rounded"></div>
-            <span>다이어리 있음</span>
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-indigo-100 rounded"></div>
+            <span className="text-xs">다이어리 있음</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 border-2 border-indigo-500 rounded"></div>
-            <span>오늘</span>
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 border-2 border-indigo-500 rounded"></div>
+            <span className="text-xs">오늘</span>
           </div>
         </div>
       </div>
