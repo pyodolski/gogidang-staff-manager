@@ -7,12 +7,13 @@ import PendingWorkApproval from "../../components/PendingWorkApproval";
 import EmployeeManagement from "../../components/EmployeeManagement";
 import AnnouncementBanner from "../../components/AnnouncementBanner";
 import AnnouncementManager from "../../components/AnnouncementManager";
+import AdminDiary from "../../components/AdminDiary";
 
 export default function AdminPage() {
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"approval" | "employees">(
-    "approval"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "approval" | "employees" | "diary"
+  >("approval");
   const [showAnnouncementManager, setShowAnnouncementManager] = useState(false);
   const [announcementRefreshTrigger, setAnnouncementRefreshTrigger] =
     useState(0);
@@ -73,6 +74,25 @@ export default function AdminPage() {
       icon: (
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
           <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.5 7H17c-.8 0-1.5.7-1.5 1.5v6c0 .8.7 1.5 1.5 1.5h1v6h2zM12.5 11.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5S11 9.17 11 10s.67 1.5 1.5 1.5zm1.5 1h-3C9.57 12.5 8.5 13.57 8.5 15v7h8v-7c0-1.43-1.07-2.5-2.5-2.5zM5.5 6c1.11 0 2-.89 2-2s-.89-2-2-2-2 .89-2 2 .89 2 2 2zm2 16v-7H9v-2.5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2V15h1.5v7h4z" />
+        </svg>
+      ),
+    },
+    {
+      id: "diary",
+      name: "다이어리",
+      icon: (
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          />
         </svg>
       ),
     },
@@ -168,6 +188,7 @@ export default function AdminPage() {
         <div className="min-h-[400px] pb-20 md:pb-0">
           {activeTab === "approval" && <PendingWorkApproval />}
           {activeTab === "employees" && <EmployeeManagement />}
+          {activeTab === "diary" && <AdminDiary />}
         </div>
 
         {/* 공지사항 관리 모달 */}
