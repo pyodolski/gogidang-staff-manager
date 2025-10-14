@@ -22,6 +22,7 @@ export default function AdminDiary() {
   const [selectedDate, setSelectedDate] = useState(
     dayjs().format("YYYY-MM-DD")
   );
+  const [selectedMonth, setSelectedMonth] = useState(dayjs().format("YYYY-MM"));
   const [currentEntry, setCurrentEntry] = useState<DiaryEntry | null>(null);
   const [showEditor, setShowEditor] = useState(false);
   const [title, setTitle] = useState("");
@@ -31,6 +32,13 @@ export default function AdminDiary() {
   const fetchEntries = async () => {
     const supabase = createClient();
     setLoading(true);
+
+    const startDate = dayjs(selectedMonth + "-01")
+      .startOf("month")
+      .format("YYYY-MM-DD");
+    const endDate = dayjs(selectedMonth + "-01")
+      .endOf("month")
+      .format("YYYY-MM-DD");
 
     const { data, error } = await supabase
       .from("admin_diary")
@@ -42,8 +50,9 @@ export default function AdminDiary() {
         )
       `
       )
-      .order("diary_date", { ascending: false })
-      .limit(10);
+      .gte("diary_date", startDate)
+      .lte("diary_date", endDate)
+      .order("diary_date", { ascending: false });
 
     if (error) {
       console.error("Error fetching diary entries:", error);
@@ -159,7 +168,38 @@ export default function AdminDiary() {
 
   useEffect(() => {
     fetchEntries();
-  }, []);
+  }, [selectedMonth]);
+
+  // 캘린더 날짜 생성
+  const generateCalendarDays = () => {
+    const firstDay = dayjs(selectedMonth + "-01").startOf("month");
+    const lastDay = dayjs(selectedMonth + "-01").endOf("month");
+    const startDate = firstDay.startOf("week");
+    const endDate = lastDay.endOf("week");
+
+    const days = [];
+    let currentDate = startDate;
+
+    while (
+      currentDate.isBefore(endDate) ||
+      currentDate.isSame(endDate, "day")
+    ) {
+      days.push(currentDate);
+      currentDate = currentDate.add(1, "day");
+    }
+
+    return days;
+  };
+
+  // 해당 날짜에 다이어리가 있는지 확인
+  const hasDiary = (date: dayjs.Dayjs) => {
+    return entries.some((entry) => dayjs(entry.diary_date).isSame(date, "day"));
+  };
+
+  // 해당 날짜의 다이어리 가져오기
+  const getDiaryForDate = (date: dayjs.Dayjs) => {
+    return entries.find((entry) => dayjs(entry.diary_date).isSame(date, "day"));
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -196,7 +236,100 @@ export default function AdminDiary() {
         </button>
       </div>
 
-      {/* 최근 다이어리 목록 */}
+      {/* 월 선택 */}
+      <div className="flex items-center gap-2 mb-4">
+        <label className="text-sm font-medium text-gray-600">조회 월:</label>
+        <input
+          type="month"
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+        />
+        <span className="text-sm text-gray-500">
+          ({entries.length}개의 다이어리)
+        </span>
+      </div>
+
+      {/* 캘린더 */}
+      <div className="bg-gray-50 rounded-lg p-4 mb-6">
+        <div className="grid grid-cols-7 gap-2">
+          {/* 요일 헤더 */}
+          {["일", "월", "화", "수", "목", "금", "토"].map((day, index) => (
+            <div
+              key={day}
+              className={`text-center text-sm font-semibold py-2 ${
+                index === 0
+                  ? "text-red-600"
+                  : index === 6
+                  ? "text-blue-600"
+                  : "text-gray-700"
+              }`}
+            >
+              {day}
+            </div>
+          ))}
+
+          {/* 날짜 */}
+          {generateCalendarDays().map((date, index) => {
+            const isCurrentMonth = date.format("YYYY-MM") === selectedMonth;
+            const isToday = date.isSame(dayjs(), "day");
+            const hasDiaryEntry = hasDiary(date);
+            const diary = getDiaryForDate(date);
+            const isSelected = date.format("YYYY-MM-DD") === selectedDate;
+
+            return (
+              <button
+                key={index}
+                onClick={() => handleDateSelect(date.format("YYYY-MM-DD"))}
+                disabled={!isCurrentMonth}
+                className={`
+                  relative aspect-square p-2 rounded-lg text-sm transition-all
+                  ${!isCurrentMonth ? "text-gray-300 cursor-not-allowed" : ""}
+                  ${isCurrentMonth && !hasDiaryEntry ? "hover:bg-gray-200" : ""}
+                  ${
+                    hasDiaryEntry
+                      ? "bg-indigo-100 hover:bg-indigo-200 font-semibold text-indigo-700"
+                      : ""
+                  }
+                  ${isToday ? "ring-2 ring-indigo-500" : ""}
+                  ${isSelected ? "ring-2 ring-indigo-600 bg-indigo-200" : ""}
+                  ${index % 7 === 0 && isCurrentMonth ? "text-red-600" : ""}
+                  ${index % 7 === 6 && isCurrentMonth ? "text-blue-600" : ""}
+                `}
+                title={
+                  diary
+                    ? `${diary.title || "제목 없음"}\n${diary.content.substring(
+                        0,
+                        50
+                      )}...`
+                    : ""
+                }
+              >
+                <div className="flex flex-col items-center justify-center h-full">
+                  <span>{date.format("D")}</span>
+                  {hasDiaryEntry && (
+                    <div className="absolute bottom-1 w-1 h-1 bg-indigo-600 rounded-full"></div>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 범례 */}
+        <div className="flex items-center justify-center gap-4 mt-4 text-xs text-gray-600">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-indigo-100 rounded"></div>
+            <span>다이어리 있음</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 border-2 border-indigo-500 rounded"></div>
+            <span>오늘</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 다이어리 목록 */}
       {loading ? (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
