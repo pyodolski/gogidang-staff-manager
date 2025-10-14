@@ -13,10 +13,36 @@ CREATE TABLE admin_diary (
 -- RLS (Row Level Security) 정책 설정
 ALTER TABLE admin_diary ENABLE ROW LEVEL SECURITY;
 
--- 관리자만 자신의 다이어리를 관리할 수 있음
-CREATE POLICY "Admins can manage their own diary" ON admin_diary
-  FOR ALL USING (
-    auth.uid() = admin_id AND
+-- 모든 관리자가 다이어리를 읽고 쓸 수 있음 (공유 다이어리)
+CREATE POLICY "Admins can read all diaries" ON admin_diary
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE profiles.id = auth.uid() 
+      AND profiles.role IN ('admin', 'super')
+    )
+  );
+
+CREATE POLICY "Admins can create diaries" ON admin_diary
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE profiles.id = auth.uid() 
+      AND profiles.role IN ('admin', 'super')
+    )
+  );
+
+CREATE POLICY "Admins can update all diaries" ON admin_diary
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE profiles.id = auth.uid() 
+      AND profiles.role IN ('admin', 'super')
+    )
+  );
+
+CREATE POLICY "Admins can delete all diaries" ON admin_diary
+  FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM profiles 
       WHERE profiles.id = auth.uid() 

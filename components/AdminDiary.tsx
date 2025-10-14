@@ -11,6 +11,9 @@ type DiaryEntry = {
   content: string;
   created_at: string;
   updated_at: string;
+  profiles?: {
+    full_name: string;
+  };
 };
 
 export default function AdminDiary() {
@@ -31,7 +34,14 @@ export default function AdminDiary() {
 
     const { data, error } = await supabase
       .from("admin_diary")
-      .select("*")
+      .select(
+        `
+        *,
+        profiles (
+          full_name
+        )
+      `
+      )
       .order("diary_date", { ascending: false })
       .limit(10);
 
@@ -48,7 +58,14 @@ export default function AdminDiary() {
 
     const { data, error } = await supabase
       .from("admin_diary")
-      .select("*")
+      .select(
+        `
+        *,
+        profiles (
+          full_name
+        )
+      `
+      )
       .eq("diary_date", date)
       .single();
 
@@ -265,6 +282,7 @@ export default function AdminDiary() {
                 </button>
               </div>
               <div className="text-xs text-gray-500">
+                작성자: {entry.profiles?.full_name || "알 수 없음"} |
                 {entry.created_at !== entry.updated_at ? "수정됨" : "작성됨"}:{" "}
                 {dayjs(entry.updated_at).format("MM-DD HH:mm")}
               </div>
