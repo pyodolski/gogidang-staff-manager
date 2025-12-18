@@ -53,7 +53,8 @@ export default function AdminDiary() {
     } else {
       // profiles 정보를 별도로 가져오기
       if (data && data.length > 0) {
-        const adminIds = [...new Set(data.map((d) => d.admin_id))];
+        const adminIdsSet = new Set(data.map((d) => d.admin_id));
+        const adminIds = Array.from(adminIdsSet);
         const { data: profilesData } = await supabase
           .from("profiles")
           .select("id, full_name")
