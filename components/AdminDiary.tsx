@@ -42,22 +42,34 @@ export default function AdminDiary() {
 
     const { data, error } = await supabase
       .from("admin_diary")
-      .select(
-        `
-        *,
-        profiles (
-          full_name
-        )
-      `
-      )
+      .select("*")
       .gte("diary_date", startDate)
       .lte("diary_date", endDate)
       .order("diary_date", { ascending: false });
 
     if (error) {
       console.error("Error fetching diary entries:", error);
+      setEntries([]);
     } else {
-      setEntries(data || []);
+      // profiles 정보를 별도로 가져오기
+      if (data && data.length > 0) {
+        const adminIds = [...new Set(data.map((d) => d.admin_id))];
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", adminIds);
+
+        const profilesMap = new Map(profilesData?.map((p) => [p.id, p]) || []);
+
+        const enrichedData = data.map((entry) => ({
+          ...entry,
+          profiles: profilesMap.get(entry.admin_id),
+        }));
+
+        setEntries(enrichedData);
+      } else {
+        setEntries(data || []);
+      }
     }
     setLoading(false);
   };
@@ -67,14 +79,7 @@ export default function AdminDiary() {
 
     const { data, error } = await supabase
       .from("admin_diary")
-      .select(
-        `
-        *,
-        profiles (
-          full_name
-        )
-      `
-      )
+      .select("*")
       .eq("diary_date", date)
       .single();
 
@@ -82,6 +87,20 @@ export default function AdminDiary() {
       // PGRST116 = no rows returned
       console.error("Error fetching diary entry:", error);
       return null;
+    }
+
+    // profiles 정보 추가
+    if (data) {
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .eq("id", data.admin_id)
+        .single();
+
+      return {
+        ...data,
+        profiles: profileData,
+      };
     }
 
     return data;

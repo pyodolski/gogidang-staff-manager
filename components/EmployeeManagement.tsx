@@ -36,6 +36,7 @@ export default function EmployeeManagement() {
       .from("profiles")
       .select("*")
       .eq("role", "employee")
+      .eq("is_hidden", false) // 숨겨지지 않은 직원만 조회
       .order("created_at", { ascending: false });
 
     if (error) {

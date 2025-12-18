@@ -10,6 +10,7 @@ type Employee = {
   role: UserRole;
   hourly_wage: number;
   created_at: string;
+  is_hidden: boolean;
 };
 
 export default function SuperEmployeeManagement() {
@@ -57,6 +58,25 @@ export default function SuperEmployeeManagement() {
     );
     setShowRoleModal(false);
     setSelectedEmployee(null);
+    fetchEmployees();
+  };
+
+  const handleToggleHidden = async (
+    employeeId: string,
+    currentHidden: boolean
+  ) => {
+    const supabase = createClient();
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ is_hidden: !currentHidden })
+      .eq("id", employeeId);
+
+    if (error) {
+      alert("숨김 상태 변경 중 오류가 발생했습니다: " + error.message);
+      return;
+    }
+
     fetchEmployees();
   };
 
@@ -134,11 +154,15 @@ export default function SuperEmployeeManagement() {
           {employees.map((employee) => (
             <div
               key={employee.id}
-              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors"
+              className={`rounded-lg p-4 transition-colors ${
+                employee.is_hidden
+                  ? "bg-gray-200 opacity-60"
+                  : "bg-gray-50 hover:bg-gray-100"
+              }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <h4 className="font-medium text-gray-800 truncate">
                       {employee.full_name}
                     </h4>
@@ -149,6 +173,11 @@ export default function SuperEmployeeManagement() {
                     >
                       {getRoleDisplayName(employee.role)}
                     </span>
+                    {employee.is_hidden && (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-400 text-white">
+                        숨김
+                      </span>
+                    )}
                   </div>
                   <div className="text-sm text-gray-600 mb-1 truncate">
                     {employee.email}
@@ -158,6 +187,20 @@ export default function SuperEmployeeManagement() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 ml-4">
+                  {/* 숨김 토글 버튼 */}
+                  <button
+                    onClick={() =>
+                      handleToggleHidden(employee.id, employee.is_hidden)
+                    }
+                    className={`px-3 py-1.5 text-xs rounded whitespace-nowrap transition-colors ${
+                      employee.is_hidden
+                        ? "bg-green-600 text-white hover:bg-green-700"
+                        : "bg-gray-600 text-white hover:bg-gray-700"
+                    }`}
+                    title={employee.is_hidden ? "직원 표시" : "직원 숨김"}
+                  >
+                    {employee.is_hidden ? "표시" : "숨김"}
+                  </button>
                   <button
                     onClick={() => {
                       setSelectedEmployee(employee);
