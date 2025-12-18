@@ -8,6 +8,7 @@ import EmployeeManagement from "../../components/EmployeeManagement";
 import AnnouncementBanner from "../../components/AnnouncementBanner";
 import AnnouncementManager from "../../components/AnnouncementManager";
 import AdminDiary from "../../components/AdminDiary";
+import EmployeeStatusModal from "../../components/EmployeeStatusModal";
 import dayjs from "dayjs";
 
 export default function AdminPage() {
@@ -16,6 +17,7 @@ export default function AdminPage() {
     "dashboard" | "approval" | "employees" | "diary"
   >("dashboard");
   const [showAnnouncementManager, setShowAnnouncementManager] = useState(false);
+  const [showEmployeeStatusModal, setShowEmployeeStatusModal] = useState(false);
   const [announcementRefreshTrigger, setAnnouncementRefreshTrigger] =
     useState(0);
   const [stats, setStats] = useState({
@@ -395,7 +397,10 @@ export default function AdminPage() {
 
               {/* 통계 카드 - 작게 */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white shadow-md hover:shadow-lg transition-all hover:scale-105">
+                <button
+                  onClick={() => setShowEmployeeStatusModal(true)}
+                  className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white shadow-md hover:shadow-lg transition-all hover:scale-105 text-left cursor-pointer"
+                >
                   <div className="flex items-center justify-between mb-2">
                     <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
                       <svg
@@ -412,14 +417,27 @@ export default function AdminPage() {
                         />
                       </svg>
                     </div>
+                    <svg
+                      className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 7l5 5m0 0l-5 5m5-5H6"
+                      />
+                    </svg>
                   </div>
                   <div className="text-2xl font-bold mb-0.5">
                     {stats.totalEmployees}명
                   </div>
                   <div className="text-blue-100 text-xs font-medium">
-                    전체 직원
+                    전체 직원 • 클릭하여 상태 확인
                   </div>
-                </div>
+                </button>
 
                 <div className="group bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-4 text-white shadow-md hover:shadow-lg transition-all hover:scale-105">
                   <div className="flex items-center justify-between mb-2">
@@ -564,6 +582,13 @@ export default function AdminPage() {
             onAnnouncementChange={() => {
               setAnnouncementRefreshTrigger((prev) => prev + 1);
             }}
+          />
+        )}
+
+        {/* 직원 상태 모달 */}
+        {showEmployeeStatusModal && (
+          <EmployeeStatusModal
+            onClose={() => setShowEmployeeStatusModal(false)}
           />
         )}
 
