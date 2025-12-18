@@ -215,13 +215,13 @@ export default function EmployeeManagement() {
   const filteredEmployees = getFilteredAndSortedEmployees();
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      {/* 헤더 */}
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-blue-100 rounded-full p-2">
+    <div className="space-y-4">
+      {/* 헤더 카드 */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl p-3 shadow-lg">
             <svg
-              className="w-6 h-6 text-blue-600"
+              className="w-6 h-6 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -244,7 +244,7 @@ export default function EmployeeManagement() {
         </div>
 
         {/* 검색 및 필터 */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-2">
           {/* 검색 */}
           <div className="flex-1 relative">
             <input
@@ -252,10 +252,10 @@ export default function EmployeeManagement() {
               placeholder="직원 이름 또는 이메일 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-10 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
             />
             <svg
-              className="w-5 h-5 text-gray-400 absolute left-3 top-2.5"
+              className="w-5 h-5 text-gray-400 absolute left-3 top-3"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -270,7 +270,7 @@ export default function EmployeeManagement() {
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <svg
                   className="w-5 h-5"
@@ -293,11 +293,11 @@ export default function EmployeeManagement() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all font-medium"
           >
-            <option value="name">이름순</option>
-            <option value="wage">시급순</option>
-            <option value="hours">근무시간순</option>
+            <option value="name">📝 이름순</option>
+            <option value="wage">💰 시급순</option>
+            <option value="hours">⏰ 근무시간순</option>
           </select>
 
           {/* 조회 월 */}
@@ -305,14 +305,27 @@ export default function EmployeeManagement() {
             type="month"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all font-medium"
           />
         </div>
 
         {/* 전체 시급 설정 */}
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-600">
-            전체 시급:
+        <div className="flex items-center gap-2 bg-green-50 rounded-xl p-3 border border-green-200">
+          <svg
+            className="w-5 h-5 text-green-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <label className="text-sm font-semibold text-green-700 flex-1">
+            전체 시급 일괄 설정
           </label>
           <button
             onClick={() => {
@@ -322,7 +335,7 @@ export default function EmployeeManagement() {
                 employees.forEach((emp) => updateHourlyWage(emp.id, 10030));
               }
             }}
-            className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+            className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm rounded-xl hover:shadow-lg transition-all hover:scale-105 font-semibold"
           >
             10,030원 설정
           </button>
@@ -367,159 +380,235 @@ export default function EmployeeManagement() {
             return (
               <div
                 key={employee.id}
-                className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-5 hover:shadow-md transition-shadow"
+                className="group bg-white/80 backdrop-blur-sm border-2 border-purple-100 rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] overflow-hidden"
               >
-                {/* 직원 정보 헤더 */}
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-blue-100 rounded-full p-2">
-                    <svg
-                      className="w-6 h-6 text-blue-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800">
-                      {employee.full_name || "이름 없음"}
-                    </h3>
-                    <p className="text-sm text-gray-600">{employee.email}</p>
-                  </div>
-                </div>
-
-                {/* 시급 정보 */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">시급</span>
-                    {editingWage?.id === employee.id ? (
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          value={editingWage.wage}
-                          onChange={(e) =>
-                            setEditingWage({
-                              ...editingWage,
-                              wage: e.target.value,
-                            })
-                          }
-                          className="w-24 px-2 py-1 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
-                          onKeyPress={(e) => {
-                            if (e.key === "Enter") handleWageSave(employee.id);
-                            if (e.key === "Escape") handleWageCancel();
-                          }}
-                          autoFocus
+                {/* 카드 헤더 */}
+                <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2.5 shadow-lg">
+                      <svg
+                        className="w-6 h-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                         />
-                        <button
-                          onClick={() => handleWageSave(employee.id)}
-                          className="p-1 bg-green-600 text-white rounded hover:bg-green-700"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={handleWageCancel}
-                          className="p-1 bg-gray-600 text-white rounded hover:bg-gray-700"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    ) : (
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-white text-lg">
+                        {employee.full_name || "이름 없음"}
+                      </h3>
+                      <p className="text-sm text-purple-100">
+                        {employee.email}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 카드 본문 */}
+                <div className="p-4 space-y-3">
+                  {/* 시급 정보 */}
+                  <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl p-3 border border-yellow-200">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-blue-600">
-                          {employee.hourly_wage?.toLocaleString() || "0"}원
-                        </span>
-                        <button
-                          onClick={() =>
-                            handleWageEdit(
-                              employee.id,
-                              employee.hourly_wage || 0
-                            )
-                          }
-                          className="p-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                        <svg
+                          className="w-5 h-5 text-yellow-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          <svg
-                            className="w-3 h-3"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
-                        </button>
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span className="text-sm font-medium text-yellow-700">
+                          시급
+                        </span>
                       </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* 이번 달 통계 */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="bg-white/50 rounded-lg p-3">
-                    <div className="text-xs text-gray-600 mb-1">근무시간</div>
-                    <div className="font-semibold text-gray-800">
-                      {stats.totalHours.toFixed(1)}시간
+                      {editingWage?.id === employee.id ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={editingWage.wage}
+                            onChange={(e) =>
+                              setEditingWage({
+                                ...editingWage,
+                                wage: e.target.value,
+                              })
+                            }
+                            className="w-24 px-2 py-1 text-sm border-2 border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+                            onKeyPress={(e) => {
+                              if (e.key === "Enter")
+                                handleWageSave(employee.id);
+                              if (e.key === "Escape") handleWageCancel();
+                            }}
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => handleWageSave(employee.id)}
+                            className="p-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={handleWageCancel}
+                            className="p-1.5 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-yellow-700 text-lg">
+                            {employee.hourly_wage?.toLocaleString() || "0"}원
+                          </span>
+                          <button
+                            onClick={() =>
+                              handleWageEdit(
+                                employee.id,
+                                employee.hourly_wage || 0
+                              )
+                            }
+                            className="p-1.5 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-all hover:scale-110"
+                          >
+                            <svg
+                              className="w-3.5 h-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="bg-white/50 rounded-lg p-3">
-                    <div className="text-xs text-gray-600 mb-1">근무일수</div>
-                    <div className="font-semibold text-gray-800">
-                      {stats.workDays}일
+
+                  {/* 이번 달 통계 */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-3 border border-blue-200">
+                      <div className="flex items-center gap-2 mb-1">
+                        <svg
+                          className="w-4 h-4 text-blue-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <div className="text-xs text-blue-600 font-medium">
+                          근무시간
+                        </div>
+                      </div>
+                      <div className="font-bold text-blue-700 text-lg">
+                        {stats.totalHours.toFixed(1)}h
+                      </div>
+                    </div>
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-3 border border-purple-200">
+                      <div className="flex items-center gap-2 mb-1">
+                        <svg
+                          className="w-4 h-4 text-purple-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <div className="text-xs text-purple-600 font-medium">
+                          근무일수
+                        </div>
+                      </div>
+                      <div className="font-bold text-purple-700 text-lg">
+                        {stats.workDays}일
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* 예상 급여 */}
-                <div className="bg-white/70 rounded-lg p-3 mb-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">예상 급여</span>
-                    <span className="font-bold text-green-600">
-                      {expectedPay.toLocaleString()}원
-                    </span>
+                  {/* 예상 급여 */}
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-3 border border-green-200">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <svg
+                          className="w-5 h-5 text-green-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span className="text-sm font-medium text-green-700">
+                          예상 급여
+                        </span>
+                      </div>
+                      <span className="font-bold text-green-700 text-lg">
+                        {expectedPay.toLocaleString()}원
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 {/* 액션 버튼 */}
-                <div className="flex gap-2">
+                <div className="p-4 pt-0 flex gap-2">
                   <button
                     onClick={() => setSelectedEmployee(employee)}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-xl hover:shadow-lg transition-all hover:scale-105 font-semibold"
                   >
                     <svg
-                      className="w-4 h-4"
+                      className="w-5 h-5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -537,14 +626,14 @@ export default function EmployeeManagement() {
                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                       />
                     </svg>
-                    상세보기
+                    <span className="hidden sm:inline">상세보기</span>
                   </button>
                   <button
                     onClick={() => setPayrollEmployee(employee)}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-lg transition-all hover:scale-105 font-semibold"
                   >
                     <svg
-                      className="w-4 h-4"
+                      className="w-5 h-5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -556,14 +645,29 @@ export default function EmployeeManagement() {
                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                       />
                     </svg>
-                    급여명세서
+                    <span className="hidden sm:inline">급여명세서</span>
                   </button>
                 </div>
 
                 {/* 가입일 */}
-                <div className="mt-3 pt-3 border-t border-blue-200">
-                  <div className="text-xs text-gray-500">
-                    가입일: {dayjs(employee.created_at).format("YYYY-MM-DD")}
+                <div className="px-4 pb-4">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg p-2">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <span>
+                      가입일: {dayjs(employee.created_at).format("YYYY-MM-DD")}
+                    </span>
                   </div>
                 </div>
               </div>
