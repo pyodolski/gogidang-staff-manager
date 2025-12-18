@@ -9,13 +9,14 @@ type Employee = {
   email: string;
   hourly_wage: number;
   created_at: string;
+  is_hidden: boolean;
 };
 
 type EmployeeWithStatus = Employee & {
   lastWorkDate: string | null;
   totalWorkDays: number;
   monthlyWorkDays: number;
-  status: "active" | "inactive" | "new";
+  status: "active" | "hidden" | "new";
 };
 
 type Props = {
@@ -25,7 +26,7 @@ type Props = {
 export default function EmployeeStatusModal({ onClose }: Props) {
   const [employees, setEmployees] = useState<EmployeeWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "active" | "inactive" | "new">(
+  const [filter, setFilter] = useState<"all" | "active" | "hidden" | "new">(
     "all"
   );
 
@@ -37,12 +38,11 @@ export default function EmployeeStatusModal({ onClose }: Props) {
     const supabase = createClient();
     setLoading(true);
 
-    // 직원 목록 가져오기
+    // 직원 목록 가져오기 (숨김 포함)
     const { data: employeeData } = await supabase
       .from("profiles")
-      .select("id, full_name, email, hourly_wage, created_at")
+      .select("id, full_name, email, hourly_wage, created_at, is_hidden")
       .eq("role", "employee")
-      .eq("is_hidden", false)
       .order("full_name");
 
     if (!employeeData) {
@@ -85,15 +85,17 @@ export default function EmployeeStatusModal({ onClose }: Props) {
         const monthlyWorkDays = monthlyLogs?.length || 0;
 
         // 상태 판단
-        let status: "active" | "inactive" | "new" = "new";
+        let status: "active" | "hidden" | "new" = "new";
 
-        if (totalWorkDays === 0) {
+        if (employee.is_hidden) {
+          // 숨김 처리된 직원
+          status = "hidden";
+        } else if (totalWorkDays === 0) {
           // 근무 기록이 없으면 신규
           status = "new";
-        } else if (lastWorkDate) {
-          const daysSinceLastWork = dayjs().diff(dayjs(lastWorkDate), "day");
-          // 7일 이내 근무했으면 활성, 아니면 비활성
-          status = daysSinceLastWork <= 7 ? "active" : "inactive";
+        } else {
+          // 근무 기록이 있으면 활성
+          status = "active";
         }
 
         return {
@@ -118,11 +120,11 @@ export default function EmployeeStatusModal({ onClose }: Props) {
   const statusCounts = {
     all: employees.length,
     active: employees.filter((e) => e.status === "active").length,
-    inactive: employees.filter((e) => e.status === "inactive").length,
+    hidden: employees.filter((e) => e.status === "hidden").length,
     new: employees.filter((e) => e.status === "new").length,
   };
 
-  const getStatusBadge = (status: "active" | "inactive" | "new") => {
+  const getStatusBadge = (status: "active" | "hidden" | "new") => {
     switch (status) {
       case "active":
         return (
@@ -130,10 +132,10 @@ export default function EmployeeStatusModal({ onClose }: Props) {
             활성
           </span>
         );
-      case "inactive":
+      case "hidden":
         return (
           <span className="px-3 py-1 bg-gradient-to-r from-gray-400 to-gray-500 text-white text-xs rounded-lg font-semibold shadow-md">
-            비활성
+            숨김
           </span>
         );
       case "new":
@@ -219,14 +221,14 @@ export default function EmployeeStatusModal({ onClose }: Props) {
               활성 ({statusCounts.active})
             </button>
             <button
-              onClick={() => setFilter("inactive")}
+              onClick={() => setFilter("hidden")}
               className={`px-4 py-2 rounded-xl font-semibold text-sm whitespace-nowrap transition-all ${
-                filter === "inactive"
+                filter === "hidden"
                   ? "bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-lg scale-105"
                   : "bg-white text-gray-600 hover:bg-gray-50"
               }`}
             >
-              비활성 ({statusCounts.inactive})
+              숨김 ({statusCounts.hidden})
             </button>
             <button
               onClick={() => setFilter("new")}
