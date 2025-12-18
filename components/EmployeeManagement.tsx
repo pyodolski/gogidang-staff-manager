@@ -27,6 +27,9 @@ export default function EmployeeManagement() {
     wage: string;
   } | null>(null);
   const [payrollEmployee, setPayrollEmployee] = useState<Employee | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"name" | "wage" | "hours">("name");
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const fetchEmployees = async () => {
     const supabase = createClient();
@@ -86,6 +89,45 @@ export default function EmployeeManagement() {
   useEffect(() => {
     fetchEmployees();
   }, []);
+
+  // 스크롤 감지
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // 맨 위로 스크롤
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // 검색 및 정렬된 직원 목록
+  const getFilteredAndSortedEmployees = () => {
+    let filtered = employees.filter(
+      (emp) =>
+        emp.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        emp.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // 정렬
+    filtered.sort((a, b) => {
+      if (sortBy === "name") {
+        return (a.full_name || "").localeCompare(b.full_name || "");
+      } else if (sortBy === "wage") {
+        return (b.hourly_wage || 0) - (a.hourly_wage || 0);
+      } else if (sortBy === "hours") {
+        const aHours = monthlyStats[a.id]?.totalHours || 0;
+        const bHours = monthlyStats[b.id]?.totalHours || 0;
+        return bHours - aHours;
+      }
+      return 0;
+    });
+
+    return filtered;
+  };
 
   const calculateMonthlyStats = async (employeeId: string, month: string) => {
     const supabase = createClient();
@@ -170,10 +212,12 @@ export default function EmployeeManagement() {
     );
   }
 
+  const filteredEmployees = getFilteredAndSortedEmployees();
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       {/* 헤더 */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+      <div className="flex flex-col gap-4 mb-6">
         <div className="flex items-center gap-3">
           <div className="bg-blue-100 rounded-full p-2">
             <svg
@@ -193,45 +237,99 @@ export default function EmployeeManagement() {
           <div>
             <h2 className="text-xl font-bold text-gray-800">직원 관리</h2>
             <p className="text-sm text-gray-600">
-              총 {employees.length}명의 직원이 등록되어 있습니다
+              총 {employees.length}명{" "}
+              {searchQuery && `(검색: ${filteredEmployees.length}명)`}
             </p>
           </div>
         </div>
 
-        {/* 컨트롤 패널 */}
+        {/* 검색 및 필터 */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-600">
-              전체 시급:
-            </label>
-            <button
-              onClick={() => {
-                if (
-                  confirm("모든 직원의 시급을 10,030원으로 설정하시겠습니까?")
-                ) {
-                  employees.forEach((emp) => updateHourlyWage(emp.id, 10030));
-                }
-              }}
-              className="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
-            >
-              10,030원 설정
-            </button>
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-600">
-              조회 월:
-            </label>
+          {/* 검색 */}
+          <div className="flex-1 relative">
             <input
-              type="month"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              type="text"
+              placeholder="직원 이름 또는 이메일 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
+            <svg
+              className="w-5 h-5 text-gray-400 absolute left-3 top-2.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
+
+          {/* 정렬 */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="name">이름순</option>
+            <option value="wage">시급순</option>
+            <option value="hours">근무시간순</option>
+          </select>
+
+          {/* 조회 월 */}
+          <input
+            type="month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        {/* 전체 시급 설정 */}
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-600">
+            전체 시급:
+          </label>
+          <button
+            onClick={() => {
+              if (
+                confirm("모든 직원의 시급을 10,030원으로 설정하시겠습니까?")
+              ) {
+                employees.forEach((emp) => updateHourlyWage(emp.id, 10030));
+              }
+            }}
+            className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+          >
+            10,030원 설정
+          </button>
         </div>
       </div>
 
-      {employees.length === 0 ? (
+      {filteredEmployees.length === 0 ? (
         <div className="text-center py-12">
           <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
             <svg
@@ -249,15 +347,17 @@ export default function EmployeeManagement() {
             </svg>
           </div>
           <p className="text-gray-500 font-medium mb-2">
-            등록된 직원이 없습니다
+            {searchQuery ? "검색 결과가 없습니다" : "등록된 직원이 없습니다"}
           </p>
           <p className="text-gray-400 text-sm">
-            새로운 직원이 가입하면 여기에 표시됩니다.
+            {searchQuery
+              ? "다른 검색어를 입력해보세요"
+              : "새로운 직원이 가입하면 여기에 표시됩니다."}
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {employees.map((employee) => {
+          {filteredEmployees.map((employee) => {
             const stats = monthlyStats[employee.id] || {
               totalHours: 0,
               workDays: 0,
@@ -479,6 +579,29 @@ export default function EmployeeManagement() {
           selectedMonth={selectedMonth}
           onClose={() => setPayrollEmployee(null)}
         />
+      )}
+
+      {/* 맨 위로 이동 버튼 */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-20 right-6 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-all z-40 animate-bounce"
+          title="맨 위로"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 10l7-7m0 0l7 7m-7-7v18"
+            />
+          </svg>
+        </button>
       )}
     </div>
   );
