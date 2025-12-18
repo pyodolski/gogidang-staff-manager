@@ -339,17 +339,17 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* 모바일 최적화된 헤더 */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
+      <div className="bg-white/80 backdrop-blur-sm shadow-lg border-b-2 border-indigo-100 sticky top-0 z-10">
         <div className="p-4">
           <div className="flex items-center gap-3 mb-3">
             <button
               onClick={onBack}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-indigo-50 rounded-xl transition-all hover:scale-110"
             >
               <svg
-                className="w-5 h-5"
+                className="w-5 h-5 text-indigo-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -363,30 +363,55 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
               </svg>
             </button>
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-bold text-gray-800 truncate">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent truncate">
                 {employee.full_name}
               </h1>
-              <p className="text-sm text-gray-600 truncate">{employee.email}</p>
+              <p className="text-sm text-gray-600 truncate flex items-center gap-1">
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+                {employee.email}
+              </p>
             </div>
           </div>
 
           {/* 월 선택 및 액션 버튼 */}
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
-                조회 월:
-              </label>
+            <div className="flex items-center gap-2 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-3">
+              <svg
+                className="w-5 h-5 text-indigo-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
               <input
                 type="month"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 border-2 border-indigo-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white font-semibold"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setShowPayrollSlip(true)}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex items-center justify-center gap-2"
+                className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:scale-105"
               >
                 <svg
                   className="w-4 h-4"
@@ -405,7 +430,7 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
               </button>
               <button
                 onClick={() => setShowDeductionModal(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center justify-center gap-2"
+                className="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-xl hover:shadow-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:scale-105"
               >
                 <svg
                   className="w-4 h-4"
@@ -425,7 +450,7 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
               <button
                 onClick={downloadExcelReport}
                 disabled={isDownloading}
-                className="col-span-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="col-span-2 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl hover:shadow-lg text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105"
               >
                 {isDownloading ? (
                   <>
@@ -476,78 +501,38 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
 
       <div className="p-4 space-y-4">
         {/* 급여 요약 카드 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            급여 요약
-          </h3>
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-2 border-white/50 p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl p-3 shadow-lg">
+              <svg
+                className="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-800">급여 요약</h3>
+          </div>
 
           {/* 메인 지표 */}
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 mb-4 text-white">
+          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 mb-4 text-white shadow-xl">
             <div className="text-center">
-              <p className="text-blue-100 text-sm">실지급액</p>
-              <p className="text-2xl font-bold">{netPay.toLocaleString()}원</p>
-            </div>
-          </div>
-
-          {/* 상세 정보 그리드 */}
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-gray-600 mb-1">근무시간</p>
-              <p className="font-semibold">{totalHours.toFixed(1)}시간</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-gray-600 mb-1">시급</p>
-              <p className="font-semibold">
-                {employee.hourly_wage.toLocaleString()}원
+              <p className="text-indigo-100 text-sm font-medium mb-2">
+                실지급액
               </p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-gray-600 mb-1">총급여</p>
-              <p className="font-semibold">{grossPay.toLocaleString()}원</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-gray-600 mb-1">총공제</p>
-              <p className="font-semibold text-red-600">
-                {totalDeductions.toLocaleString()}원
+              <p className="text-4xl font-bold mb-1">
+                {netPay.toLocaleString()}원
               </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 근무 기록 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="p-4 border-b border-gray-100">
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  근무 기록
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  총 {workLogs.length}건 (승인: {approvedLogs.length}건)
-                </p>
-              </div>
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => setShowAddWorkLogModal(true)}
-                  className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 whitespace-nowrap"
-                >
-                  근무추가
-                </button>
-                <button
-                  onClick={() => setShowAddBonusModal(true)}
-                  className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 whitespace-nowrap"
-                >
-                  보너스
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="divide-y divide-gray-100">
-            {workLogs.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
+              <div className="flex items-center justify-center gap-2 text-indigo-100 text-xs">
                 <svg
-                  className="w-12 h-12 mx-auto mb-3 text-gray-300"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -556,10 +541,171 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <p>근무 기록이 없습니다</p>
+                <span>승인된 급여</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 상세 정보 그리드 */}
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 border-2 border-blue-100">
+              <div className="flex items-center gap-2 mb-2">
+                <svg
+                  className="w-4 h-4 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="text-gray-600 font-medium">근무시간</p>
+              </div>
+              <p className="font-bold text-lg text-gray-800">
+                {totalHours.toFixed(1)}시간
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border-2 border-amber-100">
+              <div className="flex items-center gap-2 mb-2">
+                <svg
+                  className="w-4 h-4 text-amber-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="text-gray-600 font-medium">시급</p>
+              </div>
+              <p className="font-bold text-lg text-gray-800">
+                {employee.hourly_wage.toLocaleString()}원
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-100">
+              <div className="flex items-center gap-2 mb-2">
+                <svg
+                  className="w-4 h-4 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="text-gray-600 font-medium">총급여</p>
+              </div>
+              <p className="font-bold text-lg text-gray-800">
+                {grossPay.toLocaleString()}원
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-xl p-4 border-2 border-red-100">
+              <div className="flex items-center gap-2 mb-2">
+                <svg
+                  className="w-4 h-4 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 12H4"
+                  />
+                </svg>
+                <p className="text-gray-600 font-medium">총공제</p>
+              </div>
+              <p className="font-bold text-lg text-red-600">
+                {totalDeductions.toLocaleString()}원
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* 근무 기록 */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-2 border-white/50">
+          <div className="bg-gradient-to-r from-blue-500 to-cyan-600 p-5 rounded-t-2xl">
+            <div className="flex justify-between items-start">
+              <div className="text-white">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="bg-white/20 rounded-lg p-2">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold">근무 기록</h3>
+                </div>
+                <p className="text-blue-100 text-sm">
+                  총 {workLogs.length}건 • 승인 {approvedLogs.length}건
+                </p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => setShowAddWorkLogModal(true)}
+                  className="px-3 py-2 text-xs bg-white text-blue-600 rounded-lg hover:bg-blue-50 whitespace-nowrap font-semibold shadow-md transition-all hover:scale-105"
+                >
+                  + 근무추가
+                </button>
+                <button
+                  onClick={() => setShowAddBonusModal(true)}
+                  className="px-3 py-2 text-xs bg-white text-green-600 rounded-lg hover:bg-green-50 whitespace-nowrap font-semibold shadow-md transition-all hover:scale-105"
+                >
+                  + 보너스
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="divide-y divide-gray-100">
+            {workLogs.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                  <svg
+                    className="w-10 h-10 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                </div>
+                <p className="text-gray-700 font-semibold text-lg mb-2">
+                  근무 기록이 없습니다
+                </p>
+                <p className="text-gray-500 text-sm">
+                  근무추가 버튼을 눌러 기록을 추가하세요
+                </p>
               </div>
             ) : (
               workLogs.map((log) => {
@@ -575,31 +721,33 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                 return (
                   <div
                     key={log.id}
-                    className={`p-4 hover:bg-gray-50 transition-colors ${
-                      isOffDay ? "bg-yellow-50" : ""
+                    className={`p-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all cursor-pointer ${
+                      isOffDay
+                        ? "bg-gradient-to-r from-yellow-50 to-amber-50"
+                        : ""
                     }`}
+                    onClick={() => handleWorkLogClick(log)}
                   >
                     <div className="flex items-center justify-between">
-                      <div
-                        className="flex-1 cursor-pointer"
-                        onClick={() => handleWorkLogClick(log)}
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-gray-800">
-                            {dayjs(log.date).format("MM/DD (ddd)")}
-                          </p>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg px-3 py-1">
+                            <p className="font-bold text-white text-sm">
+                              {dayjs(log.date).format("MM/DD (ddd)")}
+                            </p>
+                          </div>
                           {isOffDay && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-md">
                               휴무
                             </span>
                           )}
                           <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                            className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md ${
                               log.status === "approved"
-                                ? "bg-green-100 text-green-800"
+                                ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
                                 : log.status === "rejected"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-yellow-100 text-yellow-800"
+                                ? "bg-gradient-to-r from-red-500 to-pink-600 text-white"
+                                : "bg-gradient-to-r from-amber-500 to-orange-500 text-white"
                             }`}
                           >
                             {log.status === "approved"
@@ -609,28 +757,44 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                               : "대기"}
                           </span>
                         </div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-gray-700 font-medium">
                           {isOffDay ? (
-                            "휴무일"
+                            <span className="text-amber-700">휴무일</span>
                           ) : (
                             <>
-                              {log.clock_in} ~ {log.clock_out}
-                              {isNight && (
-                                <span className="text-xs text-purple-600 ml-1">
-                                  (야간)
+                              <div className="flex items-center gap-2">
+                                <svg
+                                  className="w-4 h-4 text-blue-600"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                <span>
+                                  {log.clock_in} ~ {log.clock_out}
                                 </span>
-                              )}
-                              <br />
-                              <span className="text-xs text-gray-500">
-                                ({hours.toFixed(1)}시간)
+                                {isNight && (
+                                  <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-lg font-semibold">
+                                    야간
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-xs text-gray-500 ml-6">
+                                {hours.toFixed(1)}시간 근무
                               </span>
                             </>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <div className="text-right">
-                          <p className="font-semibold text-gray-800">
+                          <p className="font-bold text-lg text-gray-800">
                             {isOffDay ? "-" : `${dailyPay.toLocaleString()}원`}
                           </p>
                         </div>
@@ -639,10 +803,10 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                             e.stopPropagation();
                             handleDeleteWorkLog(log.id);
                           }}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all hover:scale-110"
                         >
                           <svg
-                            className="w-4 h-4"
+                            className="w-5 h-5"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -665,19 +829,12 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
         </div>
 
         {/* 공제 항목 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="p-4 border-b border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800">공제 항목</h3>
-            <p className="text-sm text-gray-600 mt-1">
-              활성 {activeDeductions.length}개 / 전체 {deductions.length}개
-            </p>
-          </div>
-
-          <div className="divide-y divide-gray-100">
-            {deductions.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-2 border-white/50">
+          <div className="bg-gradient-to-r from-red-500 to-pink-600 p-5 rounded-t-2xl">
+            <div className="flex items-center gap-3 text-white">
+              <div className="bg-white/20 rounded-lg p-2">
                 <svg
-                  className="w-12 h-12 mx-auto mb-3 text-gray-300"
+                  className="w-5 h-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -689,8 +846,38 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                     d="M20 12H4"
                   />
                 </svg>
-                <p>공제 항목이 없습니다</p>
-                <p className="text-sm mt-1">
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">공제 항목</h3>
+                <p className="text-red-100 text-sm">
+                  활성 {activeDeductions.length}개 • 전체 {deductions.length}개
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="divide-y divide-gray-100">
+            {deductions.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className="bg-gradient-to-br from-red-100 to-pink-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                  <svg
+                    className="w-10 h-10 text-red-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M20 12H4"
+                    />
+                  </svg>
+                </div>
+                <p className="text-gray-700 font-semibold text-lg mb-2">
+                  공제 항목이 없습니다
+                </p>
+                <p className="text-gray-500 text-sm">
                   공제관리 버튼을 눌러 항목을 추가하세요
                 </p>
               </div>
@@ -702,41 +889,59 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                     : Math.floor((grossPay * deduction.amount) / 100);
 
                 return (
-                  <div key={deduction.id} className="p-4">
+                  <div
+                    key={deduction.id}
+                    className="p-4 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 transition-all"
+                  >
                     <div className="flex justify-between items-center">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-gray-800">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-bold text-gray-800 text-lg">
                             {deduction.name}
                           </span>
                           <button
                             onClick={() => handleToggleDeduction(deduction)}
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer ${
+                            className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer shadow-md transition-all hover:scale-105 ${
                               deduction.is_active
-                                ? "bg-green-100 text-green-800 hover:bg-green-200"
-                                : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                                ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
+                                : "bg-gradient-to-r from-gray-400 to-gray-500 text-white"
                             }`}
                           >
-                            {deduction.is_active ? "활성" : "비활성"}
+                            {deduction.is_active ? "✓ 활성" : "✕ 비활성"}
                           </button>
                         </div>
-                        <p className="text-sm text-gray-600">
-                          {deduction.type === "fixed"
-                            ? "고정금액"
-                            : `비율 (${deduction.amount}%)`}
-                        </p>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <svg
+                            className="w-4 h-4 text-indigo-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                            />
+                          </svg>
+                          <span className="font-medium">
+                            {deduction.type === "fixed"
+                              ? "고정금액"
+                              : `비율 (${deduction.amount}%)`}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">
-                          {actualAmount.toLocaleString()}원
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold text-xl text-red-600">
+                          -{actualAmount.toLocaleString()}원
                         </span>
                         <div className="flex gap-1">
                           <button
                             onClick={() => handleEditDeduction(deduction)}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all hover:scale-110"
                           >
                             <svg
-                              className="w-4 h-4"
+                              className="w-5 h-5"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -751,10 +956,10 @@ export default function EmployeeDetail({ employee, onBack, onUpdate }: Props) {
                           </button>
                           <button
                             onClick={() => handleDeleteDeduction(deduction.id)}
-                            className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all hover:scale-110"
                           >
                             <svg
-                              className="w-4 h-4"
+                              className="w-5 h-5"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"

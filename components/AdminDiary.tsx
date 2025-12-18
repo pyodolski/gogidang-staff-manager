@@ -222,14 +222,14 @@ export default function AdminDiary() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      {/* 헤더 */}
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex justify-between items-start">
+    <div className="space-y-4">
+      {/* 헤더 카드 */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-6">
+        <div className="flex justify-between items-start mb-4">
           <div className="flex items-center gap-3">
-            <div className="bg-indigo-100 rounded-full p-2">
+            <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl p-3 shadow-lg">
               <svg
-                className="w-6 h-6 text-indigo-600"
+                className="w-6 h-6 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -243,26 +243,17 @@ export default function AdminDiary() {
               </svg>
             </div>
             <div>
-              <h2 className="text-lg md:text-xl font-bold text-gray-800">
+              <h2 className="text-xl font-bold text-gray-800">
                 관리자 다이어리
               </h2>
-              <p className="text-xs md:text-sm text-gray-600 hidden sm:block">
-                날짜별 메모와 기록을 관리하세요
+              <p className="text-sm text-gray-600">
+                {entries.length}개의 다이어리
               </p>
             </div>
           </div>
-          {/* 데스크톱: 텍스트 버튼 */}
           <button
             onClick={() => handleDateSelect(dayjs().format("YYYY-MM-DD"))}
-            className="hidden md:flex px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap"
-          >
-            오늘 작성
-          </button>
-          {/* 모바일: 아이콘 버튼 */}
-          <button
-            onClick={() => handleDateSelect(dayjs().format("YYYY-MM-DD"))}
-            className="md:hidden p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-            title="오늘 작성"
+            className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all hover:scale-105 font-semibold flex items-center gap-2"
           >
             <svg
               className="w-5 h-5"
@@ -277,61 +268,61 @@ export default function AdminDiary() {
                 d="M12 4v16m8-8H4"
               />
             </svg>
+            <span className="hidden sm:inline">오늘 작성</span>
           </button>
         </div>
-      </div>
 
-      {/* 월 선택 */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
-        <div className="flex items-center gap-2 flex-1">
-          <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
-            조회 월:
-          </label>
-          <input
-            type="month"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="flex-1 sm:flex-none border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-          />
+        {/* 월 선택 */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 flex-1">
+            <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
+              조회 월:
+            </label>
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="flex-1 sm:flex-none border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+          <span className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
+            {entries.length}개의 다이어리
+          </span>
         </div>
-        <span className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
-          {entries.length}개의 다이어리
-        </span>
-      </div>
 
-      {/* 캘린더 */}
-      <div className="bg-gray-50 rounded-lg p-2 sm:p-4 mb-6">
-        <div className="grid grid-cols-7 gap-1 sm:gap-2">
-          {/* 요일 헤더 */}
-          {["일", "월", "화", "수", "목", "금", "토"].map((day, index) => (
-            <div
-              key={day}
-              className={`text-center text-xs sm:text-sm font-semibold py-1 sm:py-2 ${
-                index === 0
-                  ? "text-red-600"
-                  : index === 6
-                  ? "text-blue-600"
-                  : "text-gray-700"
-              }`}
-            >
-              {day}
-            </div>
-          ))}
+        {/* 캘린더 */}
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-3 sm:p-4">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2">
+            {/* 요일 헤더 */}
+            {["일", "월", "화", "수", "목", "금", "토"].map((day, index) => (
+              <div
+                key={day}
+                className={`text-center text-xs sm:text-sm font-semibold py-1 sm:py-2 ${
+                  index === 0
+                    ? "text-red-600"
+                    : index === 6
+                    ? "text-blue-600"
+                    : "text-gray-700"
+                }`}
+              >
+                {day}
+              </div>
+            ))}
 
-          {/* 날짜 */}
-          {generateCalendarDays().map((date, index) => {
-            const isCurrentMonth = date.format("YYYY-MM") === selectedMonth;
-            const isToday = date.isSame(dayjs(), "day");
-            const hasDiaryEntry = hasDiary(date);
-            const diary = getDiaryForDate(date);
-            const isSelected = date.format("YYYY-MM-DD") === selectedDate;
+            {/* 날짜 */}
+            {generateCalendarDays().map((date, index) => {
+              const isCurrentMonth = date.format("YYYY-MM") === selectedMonth;
+              const isToday = date.isSame(dayjs(), "day");
+              const hasDiaryEntry = hasDiary(date);
+              const diary = getDiaryForDate(date);
+              const isSelected = date.format("YYYY-MM-DD") === selectedDate;
 
-            return (
-              <button
-                key={index}
-                onClick={() => handleDateSelect(date.format("YYYY-MM-DD"))}
-                disabled={!isCurrentMonth}
-                className={`
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleDateSelect(date.format("YYYY-MM-DD"))}
+                  disabled={!isCurrentMonth}
+                  className={`
                   relative aspect-square p-1 sm:p-2 rounded-md sm:rounded-lg text-xs sm:text-sm transition-all touch-manipulation
                   ${!isCurrentMonth ? "text-gray-300 cursor-not-allowed" : ""}
                   ${
@@ -353,35 +344,35 @@ export default function AdminDiary() {
                   ${index % 7 === 0 && isCurrentMonth ? "text-red-600" : ""}
                   ${index % 7 === 6 && isCurrentMonth ? "text-blue-600" : ""}
                 `}
-                title={
-                  diary
-                    ? `${diary.title || "제목 없음"}\n${diary.content.substring(
-                        0,
-                        50
-                      )}...`
-                    : ""
-                }
-              >
-                <div className="flex flex-col items-center justify-center h-full">
-                  <span>{date.format("D")}</span>
-                  {hasDiaryEntry && (
-                    <div className="absolute bottom-0.5 sm:bottom-1 w-1 h-1 bg-indigo-600 rounded-full"></div>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* 범례 */}
-        <div className="flex items-center justify-center gap-3 sm:gap-4 mt-3 sm:mt-4 text-xs text-gray-600">
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-indigo-100 rounded"></div>
-            <span className="text-xs">다이어리 있음</span>
+                  title={
+                    diary
+                      ? `${
+                          diary.title || "제목 없음"
+                        }\n${diary.content.substring(0, 50)}...`
+                      : ""
+                  }
+                >
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <span>{date.format("D")}</span>
+                    {hasDiaryEntry && (
+                      <div className="absolute bottom-0.5 sm:bottom-1 w-1 h-1 bg-indigo-600 rounded-full"></div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 border-2 border-indigo-500 rounded"></div>
-            <span className="text-xs">오늘</span>
+
+          {/* 범례 */}
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-3 sm:mt-4 text-xs text-gray-600">
+            <div className="flex items-center gap-1">
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-indigo-100 rounded"></div>
+              <span className="text-xs">다이어리 있음</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 border-2 border-indigo-500 rounded"></div>
+              <span className="text-xs">오늘</span>
+            </div>
           </div>
         </div>
       </div>
@@ -391,15 +382,15 @@ export default function AdminDiary() {
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="h-20 bg-gray-200 rounded-lg"></div>
+              <div className="h-24 bg-gray-200 rounded-xl"></div>
             </div>
           ))}
         </div>
       ) : entries.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-12 text-center">
+          <div className="bg-gradient-to-br from-amber-100 to-orange-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
             <svg
-              className="w-8 h-8 text-gray-400"
+              className="w-10 h-10 text-amber-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -412,10 +403,10 @@ export default function AdminDiary() {
               />
             </svg>
           </div>
-          <p className="text-gray-500 font-medium mb-2">
+          <p className="text-gray-700 font-semibold text-lg mb-2">
             작성된 다이어리가 없습니다
           </p>
-          <p className="text-gray-400 text-sm">
+          <p className="text-gray-500 text-sm">
             오늘 작성 버튼을 눌러 첫 다이어리를 작성해보세요
           </p>
         </div>
@@ -424,27 +415,29 @@ export default function AdminDiary() {
           {entries.map((entry) => (
             <div
               key={entry.id}
-              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/50 p-4 hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer"
               onClick={() => handleDateSelect(entry.diary_date)}
             >
-              <div className="flex justify-between items-start mb-2">
+              <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium text-indigo-600">
-                      {dayjs(entry.diary_date).format("YYYY년 MM월 DD일 (ddd)")}
-                    </span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg px-3 py-1">
+                      <span className="text-sm font-semibold text-white">
+                        {dayjs(entry.diary_date).format("MM월 DD일 (ddd)")}
+                      </span>
+                    </div>
                     {dayjs(entry.diary_date).isSame(dayjs(), "day") && (
-                      <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                      <span className="px-2.5 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs rounded-lg font-semibold shadow-md">
                         오늘
                       </span>
                     )}
                   </div>
                   {entry.title && (
-                    <h3 className="font-semibold text-gray-800 mb-1">
+                    <h3 className="font-bold text-gray-800 mb-2 text-lg">
                       {entry.title}
                     </h3>
                   )}
-                  <p className="text-sm text-gray-600 line-clamp-2">
+                  <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
                     {entry.content}
                   </p>
                 </div>
@@ -453,11 +446,11 @@ export default function AdminDiary() {
                     e.stopPropagation();
                     handleDelete(entry.id);
                   }}
-                  className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all hover:scale-110"
                   title="삭제"
                 >
                   <svg
-                    className="w-4 h-4"
+                    className="w-5 h-5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -471,10 +464,39 @@ export default function AdminDiary() {
                   </svg>
                 </button>
               </div>
-              <div className="text-xs text-gray-500">
-                작성자: {entry.profiles?.full_name || "알 수 없음"} |
-                {entry.created_at !== entry.updated_at ? "수정됨" : "작성됨"}:{" "}
-                {dayjs(entry.updated_at).format("MM-DD HH:mm")}
+              <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                <span>{entry.profiles?.full_name || "알 수 없음"}</span>
+                <span className="text-gray-400">•</span>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span>
+                  {entry.created_at !== entry.updated_at ? "수정됨" : "작성됨"}{" "}
+                  {dayjs(entry.updated_at).format("MM-DD HH:mm")}
+                </span>
               </div>
             </div>
           ))}
@@ -483,28 +505,55 @@ export default function AdminDiary() {
 
       {/* 다이어리 작성/수정 모달 */}
       {showEditor && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            <div className="flex justify-between items-center p-6 border-b">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {currentEntry ? "다이어리 수정" : "다이어리 작성"}
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  {dayjs(selectedDate).format("YYYY년 MM월 DD일 (ddd)")}
-                </p>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
+            <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6">
+              <div className="flex justify-between items-start">
+                <div className="text-white">
+                  <h3 className="text-xl font-bold mb-1">
+                    {currentEntry ? "다이어리 수정" : "다이어리 작성"}
+                  </h3>
+                  <p className="text-amber-100 text-sm">
+                    {dayjs(selectedDate).format("YYYY년 MM월 DD일 (ddd)")}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowEditor(false)}
+                  className="text-white hover:bg-white/20 rounded-lg p-2 transition-all"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
               </div>
-              <button
-                onClick={() => setShowEditor(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
             </div>
 
-            <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-180px)]">
+            <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-220px)]">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4 text-indigo-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
                   날짜
                 </label>
                 <input
@@ -514,55 +563,89 @@ export default function AdminDiary() {
                     setSelectedDate(e.target.value);
                     handleDateSelect(e.target.value);
                   }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  제목 (선택사항)
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4 text-indigo-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                    />
+                  </svg>
+                  제목{" "}
+                  <span className="text-gray-400 font-normal">(선택사항)</span>
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="제목을 입력하세요"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                   maxLength={200}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4 text-indigo-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
                   내용 <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="오늘의 메모를 작성하세요..."
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-none"
                   rows={12}
                   required
                 />
-                <div className="text-xs text-gray-500 mt-1">
-                  {content.length}자
+                <div className="flex justify-between items-center mt-2">
+                  <div className="text-xs text-gray-500">
+                    {content.length}자
+                  </div>
+                  {content.length > 0 && (
+                    <div className="text-xs text-green-600 font-medium">
+                      ✓ 내용이 입력되었습니다
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-3 p-6 border-t">
+            <div className="flex gap-3 p-6 border-t-2 border-gray-100 bg-gray-50">
               <button
                 onClick={() => setShowEditor(false)}
-                className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="flex-1 px-6 py-3 text-gray-700 bg-white border-2 border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 font-semibold transition-all"
               >
                 취소
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || !content.trim()}
-                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-all hover:scale-105"
               >
-                {saving ? "저장 중..." : currentEntry ? "수정" : "작성"}
+                {saving ? "저장 중..." : currentEntry ? "수정하기" : "작성하기"}
               </button>
             </div>
           </div>
