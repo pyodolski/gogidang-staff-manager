@@ -16,6 +16,12 @@ export default function Dashboard() {
   >("summary");
   const [announcementRefreshTrigger, setAnnouncementRefreshTrigger] =
     useState(0);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleWorkRegistered = () => {
+    // 모든 컴포넌트를 새로고침
+    setRefreshTrigger((prev) => prev + 1);
+  };
 
   const tabs = [
     {
@@ -48,12 +54,12 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
       <main className="max-w-4xl mx-auto py-4 px-4">
         {/* 헤더 */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-1">
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-1">
               직원 대시보드
             </h1>
             <p className="text-gray-600 text-sm md:text-base">
@@ -71,21 +77,28 @@ export default function Dashboard() {
           <WorkSummary
             selectedMonth={selectedMonth}
             setSelectedMonth={setSelectedMonth}
+            key={`summary-${refreshTrigger}`}
           />
 
           {/* 빠른 액션 카드 */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-2 border-white/50 p-5">
             <button
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 font-medium"
+              className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-6 py-4 rounded-xl hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-semibold text-lg"
               onClick={() => setShowModal(true)}
             >
-              <span className="flex items-center justify-center gap-2">
+              <span className="flex items-center justify-center gap-3">
                 <svg
-                  className="w-5 h-5"
-                  fill="currentColor"
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
                 근무 등록
               </span>
@@ -94,18 +107,16 @@ export default function Dashboard() {
         </div>
 
         {/* 탭 네비게이션 - 데스크톱 */}
-        <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
-          <div className="flex">
+        <div className="hidden md:block bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 mb-6 overflow-hidden">
+          <div className="flex p-2 gap-2">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex-1 flex items-center justify-center gap-2 py-4 px-3 text-sm font-medium transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium rounded-xl transition-all ${
                   activeTab === tab.id
-                    ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
-                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-                } ${tab.id === "summary" ? "rounded-tl-xl" : ""} ${
-                  tab.id === "history" ? "rounded-tr-xl" : ""
+                    ? "bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg scale-105"
+                    : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
                 {tab.icon}
@@ -116,26 +127,26 @@ export default function Dashboard() {
         </div>
 
         {/* 모바일 탭 네비게이션 - 하단 고정 */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-pb">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 z-50 safe-area-pb shadow-2xl">
           <div className="flex">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex-1 flex flex-col items-center justify-center py-3 px-2 text-xs font-medium transition-all ${
-                  activeTab === tab.id
-                    ? "text-blue-600 bg-blue-50"
-                    : "text-gray-600"
+                className={`flex-1 flex flex-col items-center justify-center py-2 px-1 text-xs font-medium transition-all ${
+                  activeTab === tab.id ? "text-blue-600" : "text-gray-500"
                 }`}
               >
                 <div
-                  className={`p-1 rounded-lg ${
-                    activeTab === tab.id ? "bg-blue-100" : ""
+                  className={`p-2 rounded-xl transition-all ${
+                    activeTab === tab.id
+                      ? "bg-gradient-to-r from-blue-500 to-cyan-600 text-white scale-110"
+                      : "bg-transparent"
                   }`}
                 >
                   {tab.icon}
                 </div>
-                <span className="mt-1">{tab.name}</span>
+                <span className="mt-1 text-[10px]">{tab.name}</span>
               </button>
             ))}
           </div>
@@ -144,18 +155,18 @@ export default function Dashboard() {
         {/* 탭 컨텐츠 */}
         <div className="min-h-[400px] pb-20 md:pb-0">
           {activeTab === "summary" && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-2 border-white/50 p-8">
               <div className="text-center py-8">
-                <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <div className="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
                   <svg
-                    className="w-8 h-8 text-blue-600"
+                    className="w-10 h-10 text-blue-600"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >
                     <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                <h3 className="text-xl font-bold text-gray-800 mb-2">
                   급여 요약
                 </h3>
                 <p className="text-gray-600">
@@ -166,14 +177,24 @@ export default function Dashboard() {
           )}
 
           {activeTab === "calendar" && (
-            <WorkCalendar selectedMonth={selectedMonth} />
+            <WorkCalendar
+              selectedMonth={selectedMonth}
+              key={`calendar-${refreshTrigger}`}
+            />
           )}
 
-          {activeTab === "history" && <PendingWorkTable />}
+          {activeTab === "history" && (
+            <PendingWorkTable key={`history-${refreshTrigger}`} />
+          )}
         </div>
 
         {/* 근무 등록 모달 */}
-        {showModal && <WorkRegisterModal onClose={() => setShowModal(false)} />}
+        {showModal && (
+          <WorkRegisterModal
+            onClose={() => setShowModal(false)}
+            onSuccess={handleWorkRegistered}
+          />
+        )}
       </main>
 
       {/* 모바일 전용 스타일 */}
