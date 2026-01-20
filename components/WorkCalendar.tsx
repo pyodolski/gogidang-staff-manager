@@ -25,14 +25,14 @@ export default function WorkCalendar({ selectedMonth }: Props) {
           .from("work_logs")
           .select("*")
           .eq("user_id", user.id)
-          .eq("status", "approved")
+          .eq("status", "approved") // 승인된 것만 표시
           .gte(
             "date",
-            dayjs(selectedMonth).startOf("month").format("YYYY-MM-DD")
+            dayjs(selectedMonth).startOf("month").format("YYYY-MM-DD"),
           )
           .lte(
             "date",
-            dayjs(selectedMonth).endOf("month").format("YYYY-MM-DD")
+            dayjs(selectedMonth).endOf("month").format("YYYY-MM-DD"),
           );
 
         if (error) {
@@ -94,7 +94,7 @@ export default function WorkCalendar({ selectedMonth }: Props) {
       const hours = calculateWorkHours(
         found.clock_in,
         found.clock_out,
-        found.work_type
+        found.work_type,
       );
 
       // 시급 가져오기
@@ -228,7 +228,7 @@ export default function WorkCalendar({ selectedMonth }: Props) {
             const isCurrentMonth = date.isSame(selectedMonth, "month");
             const isToday = date.isSame(dayjs(), "day");
             const found = logs.find((log) =>
-              dayjs(log.date).isSame(date, "day")
+              dayjs(log.date).isSame(date, "day"),
             );
             const workType = found?.work_type || "work";
             const isOffDay = workType === "day_off";
@@ -370,7 +370,7 @@ export default function WorkCalendar({ selectedMonth }: Props) {
                             {deduction.amount.toLocaleString()}원
                           </span>
                         </div>
-                      )
+                      ),
                     )}
                     <div className="flex justify-between items-center pt-1 border-t border-gray-200">
                       <span className="text-gray-600 text-xs">공제 합계:</span>
