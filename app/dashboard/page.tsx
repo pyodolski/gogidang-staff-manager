@@ -16,11 +16,11 @@ export default function Dashboard() {
   >("summary");
   const [announcementRefreshTrigger, setAnnouncementRefreshTrigger] =
     useState(0);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [dataRefreshTrigger, setDataRefreshTrigger] = useState(0);
 
   const handleWorkRegistered = () => {
-    // 모든 컴포넌트를 새로고침
-    setRefreshTrigger((prev) => prev + 1);
+    // 데이터 새로고침 트리거
+    setDataRefreshTrigger((prev) => prev + 1);
   };
 
   const tabs = [
@@ -77,7 +77,7 @@ export default function Dashboard() {
           <WorkSummary
             selectedMonth={selectedMonth}
             setSelectedMonth={setSelectedMonth}
-            key={`summary-${refreshTrigger}`}
+            refreshTrigger={dataRefreshTrigger}
           />
 
           {/* 빠른 액션 카드 */}
@@ -179,12 +179,12 @@ export default function Dashboard() {
           {activeTab === "calendar" && (
             <WorkCalendar
               selectedMonth={selectedMonth}
-              key={`calendar-${refreshTrigger}`}
+              refreshTrigger={dataRefreshTrigger}
             />
           )}
 
           {activeTab === "history" && (
-            <PendingWorkTable key={`history-${refreshTrigger}`} />
+            <PendingWorkTable refreshTrigger={dataRefreshTrigger} />
           )}
         </div>
 

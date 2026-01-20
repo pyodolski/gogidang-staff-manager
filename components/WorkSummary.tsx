@@ -6,11 +6,13 @@ import { calculateWorkMinutes } from "../lib/timeUtils";
 type Props = {
   selectedMonth: Date;
   setSelectedMonth: (date: Date) => void;
+  refreshTrigger?: number;
 };
 
 export default function WorkSummary({
   selectedMonth,
   setSelectedMonth,
+  refreshTrigger,
 }: Props) {
   const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -35,11 +37,11 @@ export default function WorkSummary({
           .eq("status", "approved")
           .gte(
             "date",
-            dayjs(selectedMonth).startOf("month").format("YYYY-MM-DD")
+            dayjs(selectedMonth).startOf("month").format("YYYY-MM-DD"),
           )
           .lte(
             "date",
-            dayjs(selectedMonth).endOf("month").format("YYYY-MM-DD")
+            dayjs(selectedMonth).endOf("month").format("YYYY-MM-DD"),
           );
 
         if (error) {
@@ -66,7 +68,7 @@ export default function WorkSummary({
         const minutes = calculateWorkMinutes(
           log.clock_in,
           log.clock_out,
-          workType
+          workType,
         );
         totalMinutes += minutes;
       });
@@ -106,7 +108,7 @@ export default function WorkSummary({
       setLoading(false);
     };
     fetchSummary();
-  }, [selectedMonth]);
+  }, [selectedMonth, refreshTrigger]);
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedMonth(new Date(e.target.value + "-01"));

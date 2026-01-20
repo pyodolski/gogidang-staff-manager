@@ -6,9 +6,10 @@ import { calculateWorkHours } from "../lib/timeUtils";
 
 type Props = {
   selectedMonth: Date;
+  refreshTrigger?: number;
 };
 
-export default function WorkCalendar({ selectedMonth }: Props) {
+export default function WorkCalendar({ selectedMonth, refreshTrigger }: Props) {
   const [logs, setLogs] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [detail, setDetail] = useState<any | null>(null);
@@ -47,7 +48,7 @@ export default function WorkCalendar({ selectedMonth }: Props) {
       }
     };
     fetchLogs();
-  }, [selectedMonth]);
+  }, [selectedMonth, refreshTrigger]);
 
   // 간단한 캘린더 생성 함수
   const generateCalendarDays = () => {

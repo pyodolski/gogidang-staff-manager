@@ -4,7 +4,11 @@ import dayjs from "dayjs";
 import WorkEditModal from "./WorkEditModal";
 import { formatWorkHours, isNightShift } from "../lib/timeUtils";
 
-export default function PendingWorkTable() {
+export default function PendingWorkTable({
+  refreshTrigger,
+}: {
+  refreshTrigger?: number;
+}) {
   const [workLogs, setWorkLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<
@@ -108,13 +112,13 @@ export default function PendingWorkTable() {
   }
 
   const pendingCount = workLogs.filter(
-    (log) => log.status === "pending"
+    (log) => log.status === "pending",
   ).length;
   const approvedCount = workLogs.filter(
-    (log) => log.status === "approved"
+    (log) => log.status === "approved",
   ).length;
   const rejectedCount = workLogs.filter(
-    (log) => log.status === "rejected"
+    (log) => log.status === "rejected",
   ).length;
 
   return (
@@ -323,7 +327,7 @@ export default function PendingWorkTable() {
                             {formatWorkHours(
                               log.clock_in,
                               log.clock_out,
-                              log.work_type
+                              log.work_type,
                             )}
                             시간)
                           </span>
