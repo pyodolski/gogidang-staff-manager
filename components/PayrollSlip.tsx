@@ -98,7 +98,7 @@ export default function PayrollSlip({
   const totalHours = workLogs.reduce(
     (sum, log) =>
       sum + calculateWorkHours(log.clock_in, log.clock_out, log.work_type),
-    0
+    0,
   );
   const grossPay = Math.floor(totalHours * employee.hourly_wage);
 
@@ -113,6 +113,29 @@ export default function PayrollSlip({
   const netPay = Math.floor(grossPay - totalDeductions);
 
   const monthName = dayjs(selectedMonth + "-01").format("YYYY년 MM월");
+
+  // 캘린더 생성 함수
+  const generateCalendarDays = () => {
+    const firstDay = dayjs(selectedMonth + "-01").startOf("month");
+    const lastDay = dayjs(selectedMonth + "-01").endOf("month");
+    const startDate = firstDay.startOf("week");
+    const endDate = lastDay.endOf("week");
+
+    const days = [];
+    let current = startDate;
+
+    while (current.isBefore(endDate) || current.isSame(endDate, "day")) {
+      days.push(current);
+      current = current.add(1, "day");
+    }
+
+    return days;
+  };
+
+  // 해당 날짜에 근무가 있는지 확인
+  const hasWorkOnDate = (date: dayjs.Dayjs) => {
+    return workLogs.some((log) => dayjs(log.date).isSame(date, "day"));
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -166,7 +189,70 @@ export default function PayrollSlip({
 
           {/* 근무 내역 */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3">근무 내역</h3>
+            <h3 className="text-lg font-semibold mb-3">근무 캘린더</h3>
+
+            {/* 캘린더 뷰 */}
+            <div className="mb-6 p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-100">
+              <div className="grid grid-cols-7 gap-1 mb-2">
+                {["일", "월", "화", "수", "목", "금", "토"].map(
+                  (day, index) => (
+                    <div
+                      key={day}
+                      className={`text-center text-xs font-semibold py-2 ${
+                        index === 0
+                          ? "text-red-600"
+                          : index === 6
+                            ? "text-blue-600"
+                            : "text-gray-700"
+                      }`}
+                    >
+                      {day}
+                    </div>
+                  ),
+                )}
+              </div>
+
+              <div className="grid grid-cols-7 gap-1">
+                {generateCalendarDays().map((date, index) => {
+                  const isCurrentMonth =
+                    date.format("YYYY-MM") === selectedMonth;
+                  const hasWork = hasWorkOnDate(date);
+                  const isToday = date.isSame(dayjs(), "day");
+
+                  return (
+                    <div
+                      key={date.format("YYYY-MM-DD")}
+                      className={`
+                        relative aspect-square flex items-center justify-center text-sm rounded-lg
+                        ${!isCurrentMonth ? "text-gray-300" : "text-gray-800"}
+                        ${hasWork ? "bg-gradient-to-br from-blue-500 to-cyan-600 text-white font-bold shadow-md" : "bg-white"}
+                        ${isToday && !hasWork ? "ring-2 ring-indigo-500" : ""}
+                        ${index % 7 === 0 && isCurrentMonth && !hasWork ? "text-red-600" : ""}
+                        ${index % 7 === 6 && isCurrentMonth && !hasWork ? "text-blue-600" : ""}
+                      `}
+                    >
+                      {date.format("D")}
+                      {hasWork && (
+                        <div className="absolute bottom-0.5 w-1 h-1 bg-white rounded-full"></div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center justify-center gap-4 mt-4 text-xs text-gray-600">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-cyan-600 rounded"></div>
+                  <span>근무일</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-white border border-gray-300 rounded"></div>
+                  <span>휴무일</span>
+                </div>
+              </div>
+            </div>
+
+            <h3 className="text-lg font-semibold mb-3">근무 내역 상세</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse border border-gray-300">
                 <thead>
@@ -193,7 +279,7 @@ export default function PayrollSlip({
                     const hours = calculateWorkHours(
                       log.clock_in,
                       log.clock_out,
-                      log.work_type
+                      log.work_type,
                     );
                     const dailyPay = Math.floor(hours * employee.hourly_wage);
 
