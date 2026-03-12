@@ -16,6 +16,7 @@ export default function PendingWorkTable({
   >("all");
   const [editingLog, setEditingLog] = useState<any | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState(dayjs().format("YYYY-MM"));
 
   const fetchWorkLogs = async () => {
     setLoading(true);
