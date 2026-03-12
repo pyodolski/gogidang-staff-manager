@@ -235,13 +235,14 @@ export default function PayrollSlip({
                     ? isNightShift(workLog.clock_in, workLog.clock_out)
                     : false;
                   const isToday = date.isSame(dayjs(), "day");
-                  const workHours = workLog
-                    ? calculateWorkHours(
-                        workLog.clock_in,
-                        workLog.clock_out,
-                        workLog.work_type,
-                      )
-                    : 0;
+                  const workHours =
+                    workLog && !isOffDay
+                      ? calculateWorkHours(
+                          workLog.clock_in,
+                          workLog.clock_out,
+                          workLog.work_type,
+                        )
+                      : 0;
 
                   return (
                     <div
@@ -258,11 +259,13 @@ export default function PayrollSlip({
                         ${index % 7 === 6 && isCurrentMonth && !hasWork ? "text-blue-600" : ""}
                       `}
                     >
-                      <div className="text-base font-bold">
+                      <div
+                        className={`${hasWork && !isOffDay ? "text-sm" : "text-base"} font-bold`}
+                      >
                         {date.format("D")}
                       </div>
-                      {hasWork && !isOffDay && (
-                        <div className="text-[10px] font-semibold opacity-90">
+                      {hasWork && !isOffDay && workHours > 0 && (
+                        <div className="text-[9px] font-semibold opacity-90 leading-tight">
                           {workHours.toFixed(1)}h
                         </div>
                       )}
