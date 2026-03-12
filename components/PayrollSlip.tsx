@@ -235,20 +235,26 @@ export default function PayrollSlip({
                     ? isNightShift(workLog.clock_in, workLog.clock_out)
                     : false;
                   const isToday = date.isSame(dayjs(), "day");
-                  const workHours =
-                    workLog && !isOffDay
-                      ? calculateWorkHours(
-                          workLog.clock_in,
-                          workLog.clock_out,
-                          workLog.work_type,
-                        )
-                      : 0;
+
+                  let workHours = 0;
+                  if (
+                    workLog &&
+                    workLog.clock_in &&
+                    workLog.clock_out &&
+                    !isOffDay
+                  ) {
+                    workHours = calculateWorkHours(
+                      workLog.clock_in,
+                      workLog.clock_out,
+                      workLog.work_type,
+                    );
+                  }
 
                   return (
                     <div
                       key={date.format("YYYY-MM-DD")}
                       className={`
-                        relative aspect-square flex flex-col items-center justify-center text-sm rounded-lg p-1
+                        relative aspect-square flex flex-col items-center justify-center rounded-lg p-1 gap-0.5
                         ${!isCurrentMonth ? "text-gray-300" : ""}
                         ${hasWork && !isOffDay && !isNight ? "bg-gradient-to-br from-blue-500 to-cyan-600 text-white font-bold shadow-md" : ""}
                         ${hasWork && !isOffDay && isNight ? "bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold shadow-md" : ""}
@@ -259,20 +265,16 @@ export default function PayrollSlip({
                         ${index % 7 === 6 && isCurrentMonth && !hasWork ? "text-blue-600" : ""}
                       `}
                     >
-                      <div
-                        className={`${hasWork && !isOffDay ? "text-sm" : "text-base"} font-bold`}
-                      >
+                      <span className="text-sm font-bold">
                         {date.format("D")}
-                      </div>
-                      {hasWork && !isOffDay && workHours > 0 && (
-                        <div className="text-[9px] font-semibold opacity-90 leading-tight">
-                          {workHours.toFixed(1)}h
-                        </div>
-                      )}
+                      </span>
                       {hasWork && isOffDay && (
-                        <div className="text-[9px] font-medium opacity-80">
-                          휴무
-                        </div>
+                        <span className="text-[9px] font-medium">휴무</span>
+                      )}
+                      {hasWork && !isOffDay && (
+                        <span className="text-[9px] font-bold">
+                          {workHours.toFixed(1)}h
+                        </span>
                       )}
                     </div>
                   );
