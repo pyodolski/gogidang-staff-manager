@@ -137,6 +137,17 @@ export default function PayrollSlip({
     return workLogs.some((log) => dayjs(log.date).isSame(date, "day"));
   };
 
+  // 해당 날짜의 근무 타입 확인
+  const getWorkTypeOnDate = (date: dayjs.Dayjs) => {
+    const log = workLogs.find((log) => dayjs(log.date).isSame(date, "day"));
+    return log?.work_type || "work";
+  };
+
+  // 해당 날짜의 근무 정보 가져오기
+  const getWorkLogOnDate = (date: dayjs.Dayjs) => {
+    return workLogs.find((log) => dayjs(log.date).isSame(date, "day"));
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -217,6 +228,12 @@ export default function PayrollSlip({
                   const isCurrentMonth =
                     date.format("YYYY-MM") === selectedMonth;
                   const hasWork = hasWorkOnDate(date);
+                  const workLog = getWorkLogOnDate(date);
+                  const workType = getWorkTypeOnDate(date);
+                  const isOffDay = workType === "day_off";
+                  const isNight = workLog
+                    ? isNightShift(workLog.clock_in, workLog.clock_out)
+                    : false;
                   const isToday = date.isSame(dayjs(), "day");
 
                   return (
@@ -224,8 +241,11 @@ export default function PayrollSlip({
                       key={date.format("YYYY-MM-DD")}
                       className={`
                         relative aspect-square flex items-center justify-center text-sm rounded-lg
-                        ${!isCurrentMonth ? "text-gray-300" : "text-gray-800"}
-                        ${hasWork ? "bg-gradient-to-br from-blue-500 to-cyan-600 text-white font-bold shadow-md" : "bg-white"}
+                        ${!isCurrentMonth ? "text-gray-300" : ""}
+                        ${hasWork && !isOffDay && !isNight ? "bg-gradient-to-br from-blue-500 to-cyan-600 text-white font-bold shadow-md" : ""}
+                        ${hasWork && !isOffDay && isNight ? "bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold shadow-md" : ""}
+                        ${hasWork && isOffDay ? "bg-gradient-to-br from-gray-400 to-gray-500 text-white font-semibold" : ""}
+                        ${!hasWork ? "bg-white text-gray-800" : ""}
                         ${isToday && !hasWork ? "ring-2 ring-indigo-500" : ""}
                         ${index % 7 === 0 && isCurrentMonth && !hasWork ? "text-red-600" : ""}
                         ${index % 7 === 6 && isCurrentMonth && !hasWork ? "text-blue-600" : ""}
@@ -233,21 +253,31 @@ export default function PayrollSlip({
                     >
                       {date.format("D")}
                       {hasWork && (
-                        <div className="absolute bottom-0.5 w-1 h-1 bg-white rounded-full"></div>
+                        <div
+                          className={`absolute bottom-0.5 w-1 h-1 rounded-full ${isOffDay ? "bg-gray-200" : "bg-white"}`}
+                        ></div>
                       )}
                     </div>
                   );
                 })}
               </div>
 
-              <div className="flex items-center justify-center gap-4 mt-4 text-xs text-gray-600">
+              <div className="flex items-center justify-center gap-3 mt-4 text-xs text-gray-600 flex-wrap">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-cyan-600 rounded"></div>
-                  <span>근무일</span>
+                  <span>주간근무</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded"></div>
+                  <span>야간근무</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-gradient-to-br from-gray-400 to-gray-500 rounded"></div>
+                  <span>휴무일</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 bg-white border border-gray-300 rounded"></div>
-                  <span>휴무일</span>
+                  <span>미등록</span>
                 </div>
               </div>
             </div>
