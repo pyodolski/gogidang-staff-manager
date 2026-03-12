@@ -235,12 +235,19 @@ export default function PayrollSlip({
                     ? isNightShift(workLog.clock_in, workLog.clock_out)
                     : false;
                   const isToday = date.isSame(dayjs(), "day");
+                  const workHours = workLog
+                    ? calculateWorkHours(
+                        workLog.clock_in,
+                        workLog.clock_out,
+                        workLog.work_type,
+                      )
+                    : 0;
 
                   return (
                     <div
                       key={date.format("YYYY-MM-DD")}
                       className={`
-                        relative aspect-square flex items-center justify-center text-sm rounded-lg
+                        relative aspect-square flex flex-col items-center justify-center text-sm rounded-lg p-1
                         ${!isCurrentMonth ? "text-gray-300" : ""}
                         ${hasWork && !isOffDay && !isNight ? "bg-gradient-to-br from-blue-500 to-cyan-600 text-white font-bold shadow-md" : ""}
                         ${hasWork && !isOffDay && isNight ? "bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold shadow-md" : ""}
@@ -251,11 +258,18 @@ export default function PayrollSlip({
                         ${index % 7 === 6 && isCurrentMonth && !hasWork ? "text-blue-600" : ""}
                       `}
                     >
-                      {date.format("D")}
-                      {hasWork && (
-                        <div
-                          className={`absolute bottom-0.5 w-1 h-1 rounded-full ${isOffDay ? "bg-gray-200" : "bg-white"}`}
-                        ></div>
+                      <div className="text-base font-bold">
+                        {date.format("D")}
+                      </div>
+                      {hasWork && !isOffDay && (
+                        <div className="text-[10px] font-semibold opacity-90">
+                          {workHours.toFixed(1)}h
+                        </div>
+                      )}
+                      {hasWork && isOffDay && (
+                        <div className="text-[9px] font-medium opacity-80">
+                          휴무
+                        </div>
                       )}
                     </div>
                   );

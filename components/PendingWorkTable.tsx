@@ -26,11 +26,20 @@ export default function PendingWorkTable({
     if (!user) return;
 
     try {
+      const startDate = dayjs(selectedMonth + "-01")
+        .startOf("month")
+        .format("YYYY-MM-DD");
+      const endDate = dayjs(selectedMonth + "-01")
+        .endOf("month")
+        .format("YYYY-MM-DD");
+
       let query = supabase
         .from("work_logs")
         .select("*")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .gte("date", startDate)
+        .lte("date", endDate)
+        .order("date", { ascending: false });
 
       if (filter !== "all") {
         query = query.eq("status", filter);
@@ -81,7 +90,7 @@ export default function PendingWorkTable({
 
   useEffect(() => {
     fetchWorkLogs();
-  }, [filter]);
+  }, [filter, selectedMonth]);
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -162,6 +171,31 @@ export default function PendingWorkTable({
           </svg>
           새로고침
         </button>
+      </div>
+
+      {/* 월 선택 */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-3 border-2 border-indigo-100">
+          <svg
+            className="w-5 h-5 text-indigo-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          <input
+            type="month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="flex-1 border-2 border-indigo-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white font-semibold"
+          />
+        </div>
       </div>
 
       {/* 상태별 요약 카드 */}
