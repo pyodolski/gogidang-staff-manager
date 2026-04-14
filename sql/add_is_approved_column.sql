@@ -7,7 +7,7 @@ UPDATE profiles
 SET is_approved = true
 WHERE is_approved IS NULL OR is_approved = false;
 
--- admin, super는 항상 승인 상태
+-- admin, super는 항상 승인 상태ddd
 UPDATE profiles
 SET is_approved = true
 WHERE role IN ('admin', 'super');
