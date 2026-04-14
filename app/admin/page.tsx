@@ -9,6 +9,7 @@ import AnnouncementBanner from "../../components/AnnouncementBanner";
 import AnnouncementManager from "../../components/AnnouncementManager";
 import AdminDiary from "../../components/AdminDiary";
 import EmployeeStatusModal from "../../components/EmployeeStatusModal";
+import ApprovalModal from "../../components/ApprovalModal";
 import dayjs from "dayjs";
 
 export default function AdminPage() {
@@ -18,6 +19,8 @@ export default function AdminPage() {
   >("dashboard");
   const [showAnnouncementManager, setShowAnnouncementManager] = useState(false);
   const [showEmployeeStatusModal, setShowEmployeeStatusModal] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
   const [announcementRefreshTrigger, setAnnouncementRefreshTrigger] =
     useState(0);
   const [stats, setStats] = useState({
@@ -86,6 +89,14 @@ export default function AdminPage() {
       .from("work_logs")
       .select("id")
       .eq("status", "pending");
+
+    // 미승인 가입 요청 수
+    const { data: unapproved } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("role", "employee")
+      .eq("is_approved", false);
+    setPendingCount(unapproved?.length || 0);
 
     const { data: approvedLogs } = await supabase
       .from("work_logs")
@@ -228,18 +239,25 @@ export default function AdminPage() {
       <main className="max-w-6xl mx-auto py-4 px-4">
         {/* 헤더 */}
         <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-1">
-              관리자 대시보드
-            </h1>
-            <p className="text-gray-600 text-sm md:text-base">
-              직원들의 근무를 관리하고 급여를 계산하세요
-            </p>
+          <div className="flex items-center gap-3">
+            {/* 종 버튼 */}
+            <button
+              onClick={() => setShowApprovalModal(true)}
+              className="relative p-2.5 bg-white/80 backdrop-blur-sm rounded-xl shadow border border-white/50 hover:bg-white transition-all"
+            >
+              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {pendingCount > 9 ? "9+" : pendingCount}
+                </span>
+              )}
+            </button>
           </div>
           <AuthButton />
         </div>
-
-        {/* 공지사항 배너 */}
         <AnnouncementBanner
           isAdmin={true}
           onManageClick={() => setShowAnnouncementManager(true)}
@@ -589,6 +607,14 @@ export default function AdminPage() {
         {showEmployeeStatusModal && (
           <EmployeeStatusModal
             onClose={() => setShowEmployeeStatusModal(false)}
+            onUpdate={loadStats}
+          />
+        )}
+
+        {/* 가입 승인 모달 */}
+        {showApprovalModal && (
+          <ApprovalModal
+            onClose={() => setShowApprovalModal(false)}
             onUpdate={loadStats}
           />
         )}

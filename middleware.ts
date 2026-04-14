@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // 로그인하지 않은 사용자가 보호된 페이지에 접근 시 로그인 페이지로 리디렉션
-  if (!session && (pathname.startsWith('/dashboard') || pathname.startsWith('/admin'))) {
+  if (!session && (pathname.startsWith('/dashboard') || pathname.startsWith('/admin') || pathname.startsWith('/pending'))) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 

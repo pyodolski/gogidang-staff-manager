@@ -21,7 +21,7 @@ export default function Home() {
           // 프로필 조회
           const { data: profile, error } = await supabase
             .from("profiles")
-            .select("role")
+            .select("role, is_approved, is_hidden")
             .eq("id", session.user.id)
             .single();
 
@@ -37,12 +37,15 @@ export default function Home() {
               router.replace("/super");
             } else if (profile.role === "admin") {
               router.replace("/admin");
+            } else if (!profile.is_approved) {
+              router.replace("/pending");
+            } else if (profile.is_hidden) {
+              router.replace("/pending?reason=inactive");
             } else {
               router.replace("/dashboard");
             }
           } else {
             // 프로필이 없으면 생성
-
             const { error: insertError } = await supabase
               .from("profiles")
               .insert({
@@ -52,14 +55,14 @@ export default function Home() {
                   session.user.user_metadata?.full_name || session.user.email,
                 role: "employee",
                 hourly_wage: 10000,
+                is_approved: false,
               });
 
             if (insertError) {
               console.error("Profile creation error:", insertError);
             }
 
-            // 프로필 생성 후 대시보드로
-            router.replace("/dashboard");
+            router.replace("/pending");
           }
         } else {
           router.replace("/login");

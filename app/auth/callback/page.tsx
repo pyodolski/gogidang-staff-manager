@@ -42,6 +42,7 @@ export default function AuthCallback() {
                 data.session.user.email,
               role: "employee",
               hourly_wage: 10000,
+              is_approved: false,
             });
           }
 
