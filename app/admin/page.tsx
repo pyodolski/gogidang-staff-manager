@@ -589,6 +589,7 @@ export default function AdminPage() {
         {showEmployeeStatusModal && (
           <EmployeeStatusModal
             onClose={() => setShowEmployeeStatusModal(false)}
+            onUpdate={loadStats}
           />
         )}
 

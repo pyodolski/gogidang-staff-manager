@@ -21,9 +21,10 @@ type EmployeeWithStatus = Employee & {
 
 type Props = {
   onClose: () => void;
+  onUpdate?: () => void;
 };
 
-export default function EmployeeStatusModal({ onClose }: Props) {
+export default function EmployeeStatusModal({ onClose, onUpdate }: Props) {
   const [employees, setEmployees] = useState<EmployeeWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "active" | "hidden" | "new">(
@@ -110,6 +111,22 @@ export default function EmployeeStatusModal({ onClose }: Props) {
 
     setEmployees(employeesWithStatus);
     setLoading(false);
+  };
+
+  const handleToggleHidden = async (employeeId: string, currentHidden: boolean) => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("profiles")
+      .update({ is_hidden: !currentHidden })
+      .eq("id", employeeId);
+
+    if (error) {
+      alert("상태 변경 중 오류가 발생했습니다: " + error.message);
+      return;
+    }
+
+    await fetchEmployeeStatus();
+    onUpdate?.();
   };
 
   const filteredEmployees =
@@ -307,6 +324,16 @@ export default function EmployeeStatusModal({ onClose }: Props) {
                         {employee.email}
                       </p>
                     </div>
+                    <button
+                      onClick={() => handleToggleHidden(employee.id, employee.is_hidden)}
+                      className={`ml-3 px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-all hover:scale-105 ${
+                        employee.is_hidden
+                          ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md"
+                          : "bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-md"
+                      }`}
+                    >
+                      {employee.is_hidden ? "활성화" : "숨김"}
+                    </button>
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
