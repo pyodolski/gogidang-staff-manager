@@ -1,14 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function PendingPage() {
+function PendingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const reason = searchParams.get("reason");
-  const isInactive = reason === "inactive";
-
+  const isInactive = searchParams.get("reason") === "inactive";
   const [userName, setUserName] = useState("");
 
   useEffect(() => {
@@ -25,11 +23,9 @@ export default function PendingPage() {
 
       if (!profile) { router.replace("/login"); return; }
 
-      // admin/super는 여기 올 필요 없음
       if (profile.role === "admin") { router.replace("/admin"); return; }
       if (profile.role === "super") { router.replace("/super"); return; }
 
-      // 이미 승인됐고 활성 상태면 대시보드로
       if (profile.is_approved && !profile.is_hidden) {
         router.replace("/dashboard");
         return;
@@ -71,9 +67,9 @@ export default function PendingPage() {
               </svg>
             </div>
             <h1 className="text-xl font-bold text-gray-900 mb-2">승인 대기 중</h1>
-            <p className="text-sm text-gray-500 mb-1">
-              {userName && <span className="font-semibold text-gray-700">{userName}</span>}
-            </p>
+            {userName && (
+              <p className="text-sm font-semibold text-gray-700 mb-1">{userName}</p>
+            )}
             <p className="text-sm text-gray-500 mb-6">
               관리자가 계정을 승인하면<br />서비스를 이용할 수 있습니다.
             </p>
@@ -88,5 +84,17 @@ export default function PendingPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function PendingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-gray-500 text-sm">로딩 중...</div>
+      </div>
+    }>
+      <PendingContent />
+    </Suspense>
   );
 }
