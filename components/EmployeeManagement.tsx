@@ -35,19 +35,26 @@ export default function EmployeeManagement() {
     const supabase = createClient();
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("role", "employee")
-      .eq("is_hidden", false) // 숨겨지지 않은 직원만 조회
-      .order("created_at", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("role", "employee")
+        .eq("is_hidden", false)
+        .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching employees:", error);
-    } else {
-      setEmployees(data || []);
+      if (error) {
+        console.error("Error fetching employees:", error);
+        setEmployees([]);
+      } else {
+        setEmployees(data || []);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setEmployees([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const updateHourlyWage = async (employeeId: string, newWage: number) => {

@@ -18,35 +18,33 @@ export default function SuperPage() {
 
   useEffect(() => {
     const checkSuper = async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
 
-      if (!user) {
-        router.replace("/login");
-        return;
-      }
+        if (!user) { router.replace("/login"); return; }
 
-      // Super 권한 확인
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
 
-      if (!profile || profile.role !== "super") {
-        // Super가 아니면 기존 로직으로 리디렉션
-        if (profile?.role === "admin") {
-          router.replace("/admin");
-        } else {
-          router.replace("/dashboard");
+        if (!profile || profile.role !== "super") {
+          if (profile?.role === "admin") {
+            router.replace("/admin");
+          } else {
+            router.replace("/dashboard");
+          }
+          return;
         }
-        return;
-      }
 
-      setUser(user);
-      setLoading(false);
+        setUser(user);
+        setLoading(false);
+      } catch (err) {
+        console.error("Auth check error:", err);
+        router.replace("/login");
+      }
     };
 
     checkSuper();

@@ -48,33 +48,37 @@ export default function PayrollSlip({
       const supabase = createClient();
       setLoading(true);
 
-      const startDate = dayjs(selectedMonth + "-01")
-        .startOf("month")
-        .format("YYYY-MM-DD");
-      const endDate = dayjs(selectedMonth + "-01")
-        .endOf("month")
-        .format("YYYY-MM-DD");
+      try {
+        const startDate = dayjs(selectedMonth + "-01").startOf("month").format("YYYY-MM-DD");
+        const endDate = dayjs(selectedMonth + "-01").endOf("month").format("YYYY-MM-DD");
 
-      // 승인된 근무 기록 조회
-      const { data: logs } = await supabase
-        .from("work_logs")
-        .select("*")
-        .eq("user_id", employee.id)
-        .eq("status", "approved")
-        .gte("date", startDate)
-        .lte("date", endDate)
-        .order("date", { ascending: true });
+        const { data: logs, error: logsError } = await supabase
+          .from("work_logs")
+          .select("*")
+          .eq("user_id", employee.id)
+          .eq("status", "approved")
+          .gte("date", startDate)
+          .lte("date", endDate)
+          .order("date", { ascending: true });
 
-      // 활성 공제 항목 조회
-      const { data: deductionData } = await supabase
-        .from("salary_deductions")
-        .select("*")
-        .eq("user_id", employee.id)
-        .eq("is_active", true);
+        const { data: deductionData, error: deductionError } = await supabase
+          .from("salary_deductions")
+          .select("*")
+          .eq("user_id", employee.id)
+          .eq("is_active", true);
 
-      setWorkLogs(logs || []);
-      setDeductions(deductionData || []);
-      setLoading(false);
+        if (logsError) console.error("Error fetching work logs:", logsError);
+        if (deductionError) console.error("Error fetching deductions:", deductionError);
+
+        setWorkLogs(logs || []);
+        setDeductions(deductionData || []);
+      } catch (err) {
+        console.error("Unexpected error fetching payroll data:", err);
+        setWorkLogs([]);
+        setDeductions([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchData();

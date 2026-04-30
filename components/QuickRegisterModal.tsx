@@ -58,15 +58,27 @@ export default function QuickRegisterModal({ onClose, onSuccess }: Props) {
 
   const fetchPresets = async () => {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data } = await supabase
-      .from("work_presets")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at");
-    setPresets(data || []);
-    setLoadingPresets(false);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoadingPresets(false); return; }
+      const { data, error } = await supabase
+        .from("work_presets")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at");
+
+      if (error) {
+        console.error("Error fetching presets:", error);
+        setPresets([]);
+      } else {
+        setPresets(data || []);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setPresets([]);
+    } finally {
+      setLoadingPresets(false);
+    }
   };
 
   const handleSavePreset = async () => {

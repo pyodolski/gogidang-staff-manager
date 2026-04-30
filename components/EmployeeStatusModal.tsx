@@ -38,55 +38,62 @@ export default function EmployeeStatusModal({ onClose, onUpdate }: Props) {
     const supabase = createClient();
     setLoading(true);
 
-    const { data: employeeData } = await supabase
-      .from("profiles")
-      .select("id, full_name, email, hourly_wage, created_at, is_hidden")
-      .eq("role", "employee")
-      .order("full_name");
+    try {
+      const { data: employeeData, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, hourly_wage, created_at, is_hidden")
+        .eq("role", "employee")
+        .order("full_name");
 
-    if (!employeeData) {
+      if (error || !employeeData) {
+        console.error("Error fetching employees:", error);
+        setEmployees([]);
+        return;
+      }
+
+      const currentMonth = dayjs().format("YYYY-MM");
+      const startDate = dayjs(currentMonth + "-01").startOf("month").format("YYYY-MM-DD");
+      const endDate = dayjs(currentMonth + "-01").endOf("month").format("YYYY-MM-DD");
+
+      const employeesWithStatus = await Promise.all(
+        employeeData.map(async (employee) => {
+          const { data: allLogs } = await supabase
+            .from("work_logs")
+            .select("date")
+            .eq("user_id", employee.id)
+            .eq("status", "approved")
+            .order("date", { ascending: false });
+
+          const { data: monthlyLogs } = await supabase
+            .from("work_logs")
+            .select("date")
+            .eq("user_id", employee.id)
+            .eq("status", "approved")
+            .gte("date", startDate)
+            .lte("date", endDate);
+
+          const lastWorkDate = allLogs && allLogs.length > 0 ? allLogs[0].date : null;
+          const totalWorkDays = allLogs?.length || 0;
+          const monthlyWorkDays = monthlyLogs?.length || 0;
+
+          let status: "active" | "hidden" | "new" = "new";
+          if (employee.is_hidden) {
+            status = "hidden";
+          } else if (totalWorkDays > 0) {
+            status = "active";
+          }
+
+          return { ...employee, lastWorkDate, totalWorkDays, monthlyWorkDays, status };
+        })
+      );
+
+      setEmployees(employeesWithStatus);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setEmployees([]);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const currentMonth = dayjs().format("YYYY-MM");
-    const startDate = dayjs(currentMonth + "-01").startOf("month").format("YYYY-MM-DD");
-    const endDate = dayjs(currentMonth + "-01").endOf("month").format("YYYY-MM-DD");
-
-    const employeesWithStatus = await Promise.all(
-      employeeData.map(async (employee) => {
-        const { data: allLogs } = await supabase
-          .from("work_logs")
-          .select("date")
-          .eq("user_id", employee.id)
-          .eq("status", "approved")
-          .order("date", { ascending: false });
-
-        const { data: monthlyLogs } = await supabase
-          .from("work_logs")
-          .select("date")
-          .eq("user_id", employee.id)
-          .eq("status", "approved")
-          .gte("date", startDate)
-          .lte("date", endDate);
-
-        const lastWorkDate = allLogs && allLogs.length > 0 ? allLogs[0].date : null;
-        const totalWorkDays = allLogs?.length || 0;
-        const monthlyWorkDays = monthlyLogs?.length || 0;
-
-        let status: "active" | "hidden" | "new" = "new";
-        if (employee.is_hidden) {
-          status = "hidden";
-        } else if (totalWorkDays > 0) {
-          status = "active";
-        }
-
-        return { ...employee, lastWorkDate, totalWorkDays, monthlyWorkDays, status };
-      })
-    );
-
-    setEmployees(employeesWithStatus);
-    setLoading(false);
   };
 
   const handleToggleHidden = async (employeeId: string, currentHidden: boolean) => {

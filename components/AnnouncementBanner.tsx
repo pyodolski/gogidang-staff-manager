@@ -34,27 +34,27 @@ export default function AnnouncementBanner({
     const supabase = createClient();
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("announcements")
-      .select(
-        `
-        *,
-        profiles (
-          full_name
-        )
-      `
-      )
-      .eq("is_active", true)
-      .order("priority", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(5);
+    try {
+      const { data, error } = await supabase
+        .from("announcements")
+        .select(`*, profiles (full_name)`)
+        .eq("is_active", true)
+        .order("priority", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(5);
 
-    if (error) {
-      console.error("Error fetching announcements:", error);
-    } else {
-      setAnnouncements(data || []);
+      if (error) {
+        console.error("Error fetching announcements:", error);
+        setAnnouncements([]);
+      } else {
+        setAnnouncements(data || []);
+      }
+    } catch (err) {
+      console.error("Unexpected error fetching announcements:", err);
+      setAnnouncements([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const markAsRead = async (announcementId: number) => {

@@ -35,37 +35,34 @@ export default function AdminPage() {
 
   useEffect(() => {
     const checkAdmin = async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
 
-      if (!user) {
+        if (!user) { router.replace("/login"); return; }
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (!profile) { router.replace("/dashboard"); return; }
+
+        if (profile.role === "super") {
+          router.replace("/super");
+          return;
+        } else if (profile.role !== "admin") {
+          router.replace("/dashboard");
+          return;
+        }
+
+        setLoading(false);
+        loadStats();
+      } catch (err) {
+        console.error("Auth check error:", err);
         router.replace("/login");
-        return;
       }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile) {
-        router.replace("/dashboard");
-        return;
-      }
-
-      if (profile.role === "super") {
-        router.replace("/super");
-        return;
-      } else if (profile.role !== "admin") {
-        router.replace("/dashboard");
-        return;
-      }
-
-      setLoading(false);
-      loadStats();
     };
 
     checkAdmin();

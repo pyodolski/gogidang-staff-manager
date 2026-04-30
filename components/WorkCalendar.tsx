@@ -17,24 +17,17 @@ export default function WorkCalendar({ selectedMonth, refreshTrigger }: Props) {
   useEffect(() => {
     const fetchLogs = async () => {
       const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
       try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
         const { data, error } = await supabase
           .from("work_logs")
           .select("*")
           .eq("user_id", user.id)
-          .eq("status", "approved") // 승인된 것만 표시
-          .gte(
-            "date",
-            dayjs(selectedMonth).startOf("month").format("YYYY-MM-DD"),
-          )
-          .lte(
-            "date",
-            dayjs(selectedMonth).endOf("month").format("YYYY-MM-DD"),
-          );
+          .eq("status", "approved")
+          .gte("date", dayjs(selectedMonth).startOf("month").format("YYYY-MM-DD"))
+          .lte("date", dayjs(selectedMonth).endOf("month").format("YYYY-MM-DD"));
 
         if (error) {
           console.error("Error fetching work logs:", error);
@@ -43,7 +36,7 @@ export default function WorkCalendar({ selectedMonth, refreshTrigger }: Props) {
           setLogs(data || []);
         }
       } catch (err) {
-        console.error("Database query error:", err);
+        console.error("Unexpected error fetching calendar logs:", err);
         setLogs([]);
       }
     };

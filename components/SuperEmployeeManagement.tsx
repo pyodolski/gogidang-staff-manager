@@ -28,13 +28,25 @@ export default function SuperEmployeeManagement() {
 
   const fetchEmployees = async () => {
     const supabase = createClient();
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .order("created_at", { ascending: false });
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-    setEmployees(data || []);
-    setLoading(false);
+      if (error) {
+        console.error("Error fetching employees:", error);
+        setEmployees([]);
+      } else {
+        setEmployees(data || []);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setEmployees([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRoleChange = async (newRole: UserRole) => {

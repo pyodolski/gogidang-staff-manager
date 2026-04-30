@@ -36,25 +36,25 @@ export default function AnnouncementManager({
     const supabase = createClient();
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("announcements")
-      .select(
-        `
-        *,
-        profiles (
-          full_name
-        )
-      `
-      )
-      .order("priority", { ascending: false })
-      .order("created_at", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("announcements")
+        .select(`*, profiles (full_name)`)
+        .order("priority", { ascending: false })
+        .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching announcements:", error);
-    } else {
-      setAnnouncements(data || []);
+      if (error) {
+        console.error("Error fetching announcements:", error);
+        setAnnouncements([]);
+      } else {
+        setAnnouncements(data || []);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setAnnouncements([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleToggleActive = async (id: number, isActive: boolean) => {

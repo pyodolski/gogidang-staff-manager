@@ -27,15 +27,26 @@ export default function ApprovalModal({ onClose, onUpdate }: Props) {
   const fetchPending = async () => {
     const supabase = createClient();
     setLoading(true);
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, full_name, email, created_at")
-      .eq("role", "employee")
-      .eq("is_approved", false)
-      .order("created_at", { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, created_at")
+        .eq("role", "employee")
+        .eq("is_approved", false)
+        .order("created_at", { ascending: true });
 
-    setPending(data || []);
-    setLoading(false);
+      if (error) {
+        console.error("Error fetching pending:", error);
+        setPending([]);
+      } else {
+        setPending(data || []);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setPending([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleApprove = async (id: string) => {

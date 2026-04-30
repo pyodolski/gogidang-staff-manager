@@ -21,18 +21,12 @@ export default function PendingWorkTable({
   const fetchWorkLogs = async () => {
     setLoading(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-
     try {
-      const startDate = dayjs(selectedMonth + "-01")
-        .startOf("month")
-        .format("YYYY-MM-DD");
-      const endDate = dayjs(selectedMonth + "-01")
-        .endOf("month")
-        .format("YYYY-MM-DD");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const startDate = dayjs(selectedMonth + "-01").startOf("month").format("YYYY-MM-DD");
+      const endDate = dayjs(selectedMonth + "-01").endOf("month").format("YYYY-MM-DD");
 
       let query = supabase
         .from("work_logs")
@@ -55,10 +49,11 @@ export default function PendingWorkTable({
         setWorkLogs(data || []);
       }
     } catch (err) {
-      console.error("Database query error:", err);
+      console.error("Unexpected error:", err);
       setWorkLogs([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleDelete = async (id: number) => {

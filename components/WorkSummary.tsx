@@ -21,91 +21,71 @@ export default function WorkSummary({
   useEffect(() => {
     const fetchSummary = async () => {
       setLoading(true);
-      // 로그인된 유저 정보
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-      // 해당 월의 승인된 근무 내역 (work_type 컬럼이 없을 수도 있으므로 에러 처리)
-      let logs: any[] = [];
       try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        let logs: any[] = [];
         const { data, error } = await supabase
           .from("work_logs")
           .select("*")
           .eq("user_id", user.id)
           .eq("status", "approved")
-          .gte(
-            "date",
-            dayjs(selectedMonth).startOf("month").format("YYYY-MM-DD"),
-          )
-          .lte(
-            "date",
-            dayjs(selectedMonth).endOf("month").format("YYYY-MM-DD"),
-          );
+          .gte("date", dayjs(selectedMonth).startOf("month").format("YYYY-MM-DD"))
+          .lte("date", dayjs(selectedMonth).endOf("month").format("YYYY-MM-DD"));
 
         if (error) {
           console.error("Error fetching work logs:", error);
         } else {
           logs = data || [];
         }
-      } catch (err) {
-        console.error("Database query error:", err);
-        logs = [];
-      }
-      // 시급: profiles 테이블에서 가져오거나, 임시로 10000원
-      let hourly = 10030;
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("hourly_wage")
-        .eq("id", user.id)
-        .single();
-      if (profile?.hourly_wage) hourly = profile.hourly_wage;
-      // 총 근무시간(분 단위 합산)
-      let totalMinutes = 0;
-      logs?.forEach((log: any) => {
-        const workType = log.work_type || "work";
-        const minutes = calculateWorkMinutes(
-          log.clock_in,
-          log.clock_out,
-          workType,
-        );
-        totalMinutes += minutes;
-      });
 
-      const totalHours = totalMinutes > 0 ? totalMinutes / 60 : 0;
-      const totalPay = totalHours > 0 ? Math.floor(hourly * totalHours) : 0;
+        let hourly = 10030;
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("hourly_wage")
+          .eq("id", user.id)
+          .single();
+        if (profile?.hourly_wage) hourly = profile.hourly_wage;
 
-      // 모든 공제 항목들 조회
-      const { data: deductions } = await supabase
-        .from("salary_deductions")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("is_active", true);
+        let totalMinutes = 0;
+        logs.forEach((log: any) => {
+          totalMinutes += calculateWorkMinutes(log.clock_in, log.clock_out, log.work_type || "work");
+        });
 
-      // 모든 공제 항목 계산
-      let totalDeductions = 0;
+        const totalHours = totalMinutes > 0 ? totalMinutes / 60 : 0;
+        const totalPay = totalHours > 0 ? Math.floor(hourly * totalHours) : 0;
 
-      if (deductions && deductions.length > 0) {
-        deductions.forEach((deduction: any) => {
-          const amount =
-            deduction.type === "fixed"
+        const { data: deductions } = await supabase
+          .from("salary_deductions")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("is_active", true);
+
+        let totalDeductions = 0;
+        if (deductions && deductions.length > 0) {
+          deductions.forEach((deduction: any) => {
+            const amount = deduction.type === "fixed"
               ? deduction.amount
               : Math.floor((totalPay * deduction.amount) / 100);
-          totalDeductions += amount;
-        });
-      }
+            totalDeductions += amount;
+          });
+        }
 
-      const realPay = totalPay > 0 ? Math.floor(totalPay - totalDeductions) : 0;
-      setSummary({
-        month: monthStr,
-        totalHours,
-        hourly,
-        totalPay,
-        totalDeductions,
-        realPay,
-      });
-      setLoading(false);
+        setSummary({
+          month: monthStr,
+          totalHours,
+          hourly,
+          totalPay,
+          totalDeductions,
+          realPay: totalPay > 0 ? Math.floor(totalPay - totalDeductions) : 0,
+        });
+      } catch (err) {
+        console.error("Unexpected error fetching summary:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchSummary();
   }, [selectedMonth, refreshTrigger]);

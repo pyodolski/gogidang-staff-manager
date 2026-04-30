@@ -33,26 +33,25 @@ export default function AdminDiary() {
     const supabase = createClient();
     setLoading(true);
 
-    const startDate = dayjs(selectedMonth + "-01")
-      .startOf("month")
-      .format("YYYY-MM-DD");
-    const endDate = dayjs(selectedMonth + "-01")
-      .endOf("month")
-      .format("YYYY-MM-DD");
+    try {
+      const startDate = dayjs(selectedMonth + "-01")
+        .startOf("month")
+        .format("YYYY-MM-DD");
+      const endDate = dayjs(selectedMonth + "-01")
+        .endOf("month")
+        .format("YYYY-MM-DD");
 
-    const { data, error } = await supabase
-      .from("admin_diary")
-      .select("*")
-      .gte("diary_date", startDate)
-      .lte("diary_date", endDate)
-      .order("diary_date", { ascending: false });
+      const { data, error } = await supabase
+        .from("admin_diary")
+        .select("*")
+        .gte("diary_date", startDate)
+        .lte("diary_date", endDate)
+        .order("diary_date", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching diary entries:", error);
-      setEntries([]);
-    } else {
-      // profiles 정보를 별도로 가져오기
-      if (data && data.length > 0) {
+      if (error) {
+        console.error("Error fetching diary entries:", error);
+        setEntries([]);
+      } else if (data && data.length > 0) {
         const adminIdsSet = new Set(data.map((d) => d.admin_id));
         const adminIds = Array.from(adminIdsSet);
         const { data: profilesData } = await supabase
@@ -61,18 +60,16 @@ export default function AdminDiary() {
           .in("id", adminIds);
 
         const profilesMap = new Map(profilesData?.map((p) => [p.id, p]) || []);
-
-        const enrichedData = data.map((entry) => ({
-          ...entry,
-          profiles: profilesMap.get(entry.admin_id),
-        }));
-
-        setEntries(enrichedData);
+        setEntries(data.map((entry) => ({ ...entry, profiles: profilesMap.get(entry.admin_id) })));
       } else {
         setEntries(data || []);
       }
+    } catch (err) {
+      console.error("Unexpected error fetching diary:", err);
+      setEntries([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const fetchEntryByDate = async (date: string) => {

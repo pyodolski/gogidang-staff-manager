@@ -23,6 +23,7 @@ type WorkLog = {
 export default function PendingWorkApproval() {
   const [pendingLogs, setPendingLogs] = useState<WorkLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedLogForReject, setSelectedLogForReject] =
@@ -33,26 +34,36 @@ export default function PendingWorkApproval() {
     const supabase = createClient();
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("work_logs")
-      .select(
+    try {
+      const { data, error } = await supabase
+        .from("work_logs")
+        .select(
+          `
+          *,
+          profiles (
+            full_name,
+            email
+          )
         `
-        *,
-        profiles (
-          full_name,
-          email
         )
-      `
-      )
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching pending logs:", error);
-    } else {
-      setPendingLogs(data || []);
+      if (error) {
+        console.error("Error fetching pending logs:", error);
+        setError("데이터를 불러오지 못했습니다. 다시 시도해주세요.");
+        setPendingLogs([]);
+      } else {
+        setError(null);
+        setPendingLogs(data || []);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setError("네트워크 오류가 발생했습니다.");
+      setPendingLogs([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -134,6 +145,27 @@ export default function PendingWorkApproval() {
               className="h-32 bg-gradient-to-r from-gray-100 to-gray-200 rounded-xl"
             ></div>
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-8">
+        <div className="text-center py-8">
+          <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <p className="text-gray-700 font-semibold mb-4">{error}</p>
+          <button
+            onClick={fetchPendingLogs}
+            className="px-6 py-2 bg-indigo-500 text-white rounded-xl font-semibold hover:bg-indigo-600 transition-colors"
+          >
+            다시 시도
+          </button>
         </div>
       </div>
     );
