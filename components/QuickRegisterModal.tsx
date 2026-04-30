@@ -18,10 +18,10 @@ type Props = {
 
 const DAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
-// 이번 주 + 다음 주 날짜 목록 생성 (오늘 기준 ±7일)
+// 오늘 포함 3일 전까지만 (총 4일)
 function getNearDates() {
   const dates: { value: string; label: string; dow: number }[] = [];
-  for (let i = -1; i <= 13; i++) {
+  for (let i = -3; i <= 0; i++) {
     const d = dayjs().add(i, "day");
     dates.push({
       value: d.format("YYYY-MM-DD"),
