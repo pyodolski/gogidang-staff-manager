@@ -5,11 +5,13 @@ import WorkCalendar from "../../components/WorkCalendar";
 import PendingWorkTable from "../../components/PendingWorkTable";
 import AuthButton from "../../components/AuthButton";
 import AnnouncementBanner from "../../components/AnnouncementBanner";
+import QuickRegisterModal from "../../components/QuickRegisterModal";
 
 import { useState } from "react";
 
 export default function Dashboard() {
   const [showModal, setShowModal] = useState(false);
+  const [showQuickModal, setShowQuickModal] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [activeTab, setActiveTab] = useState<
     "summary" | "calendar" | "history"
@@ -82,27 +84,28 @@ export default function Dashboard() {
 
           {/* 빠른 액션 카드 */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-2 border-white/50 p-5">
-            <button
-              className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-6 py-4 rounded-xl hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-semibold text-lg"
-              onClick={() => setShowModal(true)}
-            >
-              <span className="flex items-center justify-center gap-3">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                근무 등록
-              </span>
-            </button>
+            <div className="flex gap-3">
+              <button
+                className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-4 py-4 rounded-xl hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-semibold text-base"
+                onClick={() => setShowModal(true)}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  근무 등록
+                </span>
+              </button>
+              <button
+                className="flex-1 bg-gradient-to-r from-violet-500 to-purple-600 text-white px-4 py-4 rounded-xl hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-semibold text-base"
+                onClick={() => setShowQuickModal(true)}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <span className="text-lg">⚡</span>
+                  퀵 등록
+                </span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -192,6 +195,14 @@ export default function Dashboard() {
         {showModal && (
           <WorkRegisterModal
             onClose={() => setShowModal(false)}
+            onSuccess={handleWorkRegistered}
+          />
+        )}
+
+        {/* 퀵 등록 모달 */}
+        {showQuickModal && (
+          <QuickRegisterModal
+            onClose={() => setShowQuickModal(false)}
             onSuccess={handleWorkRegistered}
           />
         )}
