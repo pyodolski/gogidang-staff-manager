@@ -10,9 +10,11 @@ import AnnouncementManager from "../../components/AnnouncementManager";
 import AdminDiary from "../../components/AdminDiary";
 import EmployeeStatusModal from "../../components/EmployeeStatusModal";
 import ApprovalModal from "../../components/ApprovalModal";
+import { useAuthGuard } from "../../lib/useAuthGuard";
 import dayjs from "dayjs";
 
 export default function AdminPage() {
+  useAuthGuard();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
     "dashboard" | "approval" | "employees" | "diary"

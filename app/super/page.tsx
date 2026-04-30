@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import AuthButton from "../../components/AuthButton";
 import SuperEmployeeManagement from "../../components/SuperEmployeeManagement";
 import PendingWorkApproval from "../../components/PendingWorkApproval";
+import { useAuthGuard } from "../../lib/useAuthGuard";
 
 export default function SuperPage() {
+  useAuthGuard();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"employees" | "approval">(

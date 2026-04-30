@@ -412,20 +412,26 @@ export default function QuickRegisterModal({ onClose, onSuccess }: Props) {
                   const isToday = d.value === dayjs().format("YYYY-MM-DD");
                   const isSun = d.dow === 0;
                   const isSat = d.dow === 6;
+                  // 프리셋에 요일이 지정돼 있으면 해당 요일만 활성화
+                  const hasPresetDays = selectedPreset.days_of_week?.length > 0;
+                  const isDisabled = hasPresetDays && !selectedPreset.days_of_week.includes(d.dow);
                   return (
                     <button
                       key={d.value}
-                      onClick={() => toggleDate(d.value)}
-                      className={`py-2 px-1 rounded-xl text-xs font-semibold transition-all active:scale-95 ${
-                        isSelected
-                          ? "bg-blue-500 text-white shadow-md"
+                      onClick={() => !isDisabled && toggleDate(d.value)}
+                      disabled={isDisabled}
+                      className={`py-2 px-1 rounded-xl text-xs font-semibold transition-all ${
+                        isDisabled
+                          ? "bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed"
+                          : isSelected
+                          ? "bg-blue-500 text-white shadow-md active:scale-95"
                           : isToday
-                          ? "bg-amber-50 border-2 border-amber-300 text-amber-700"
+                          ? "bg-amber-50 border-2 border-amber-300 text-amber-700 active:scale-95"
                           : isSun
-                          ? "bg-red-50 text-red-400 border border-red-100"
+                          ? "bg-red-50 text-red-400 border border-red-100 active:scale-95"
                           : isSat
-                          ? "bg-blue-50 text-blue-400 border border-blue-100"
-                          : "bg-gray-50 text-gray-600 border border-gray-100"
+                          ? "bg-blue-50 text-blue-400 border border-blue-100 active:scale-95"
+                          : "bg-gray-50 text-gray-600 border border-gray-100 active:scale-95"
                       }`}
                     >
                       {d.label}

@@ -6,10 +6,12 @@ import PendingWorkTable from "../../components/PendingWorkTable";
 import AuthButton from "../../components/AuthButton";
 import AnnouncementBanner from "../../components/AnnouncementBanner";
 import QuickRegisterModal from "../../components/QuickRegisterModal";
+import { useAuthGuard } from "../../lib/useAuthGuard";
 
 import { useState } from "react";
 
 export default function Dashboard() {
+  useAuthGuard();
   const [showModal, setShowModal] = useState(false);
   const [showQuickModal, setShowQuickModal] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
