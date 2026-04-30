@@ -127,7 +127,7 @@ export default function AdminPage() {
         }
 
         const hours = clockOut.diff(clockIn, "hour", true);
-        const wage = employeeMap.get(log.user_id) || 0;
+        const wage = (employeeMap.get(log.user_id) ?? 0) as number;
 
         totalHours += hours;
         totalPay += hours * wage;
